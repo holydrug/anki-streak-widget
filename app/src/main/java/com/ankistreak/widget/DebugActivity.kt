@@ -1,15 +1,16 @@
 package com.ankistreak.widget
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import java.time.LocalDate
 import java.time.LocalTime
@@ -26,11 +27,18 @@ class DebugActivity : AppCompatActivity() {
         val btnRefresh = findViewById<Button>(R.id.btn_refresh)
         val btnForceUpdate = findViewById<Button>(R.id.btn_force_update)
 
+        val btnCopy = findViewById<Button>(R.id.btn_copy)
+
         btnRefresh.setOnClickListener { refresh() }
         btnForceUpdate.setOnClickListener {
             StreakWidgetProvider.updateAllWidgets(this)
             WorkScheduler.scheduleAll(this)
             refresh()
+        }
+        btnCopy.setOnClickListener {
+            val clip = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clip.setPrimaryClip(ClipData.newPlainText("AnkiStreak Debug", debugText.text))
+            Toast.makeText(this, "Скопировано!", Toast.LENGTH_SHORT).show()
         }
 
         refresh()
