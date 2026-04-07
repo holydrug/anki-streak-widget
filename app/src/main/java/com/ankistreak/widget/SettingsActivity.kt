@@ -13,7 +13,14 @@ import androidx.core.content.ContextCompat
 
 class SettingsActivity : AppCompatActivity() {
 
+    companion object {
+        private const val ANKI_PERMISSION = "com.ichi2.anki.permission.READ_WRITE_DATABASE"
+        private const val RC_ANKI_PERMISSION = 101
+        private const val RC_NOTIFICATIONS = 100
+    }
+
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+    private lateinit var ankiStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +41,7 @@ class SettingsActivity : AppCompatActivity() {
         val reminderPicker = findViewById<TimePicker>(R.id.reminder_time_picker)
         val criticalPicker = findViewById<TimePicker>(R.id.critical_time_picker)
         val saveButton = findViewById<Button>(R.id.save_button)
-        val ankiStatus = findViewById<TextView>(R.id.anki_status)
+        ankiStatus = findViewById(R.id.anki_status)
         val currentStreakDisplay = findViewById<TextView>(R.id.current_streak_display)
         val bestStreakDisplay = findViewById<TextView>(R.id.best_streak_display)
 
@@ -53,8 +60,9 @@ class SettingsActivity : AppCompatActivity() {
         currentStreakDisplay.text = streak.currentStreak.toString()
         bestStreakDisplay.text = "Лучший: ${streak.bestStreak}"
 
-        // Check AnkiDroid status
-        updateAnkiStatus(ankiStatus, tracker)
+        // Check AnkiDroid status & request permission if needed
+        updateAnkiStatus(tracker)
+        requestAnkiPermissionIfNeeded()
 
         // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -64,7 +72,7 @@ class SettingsActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    100
+                    RC_NOTIFICATIONS
                 )
             }
         }
@@ -98,19 +106,59 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateAnkiStatus(statusView: TextView, tracker: AnkiTracker) {
+    private fun requestAnkiPermissionIfNeeded() {
+        if (ContextCompat.checkSelfPermission(this, ANKI_PERMISSION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(ANKI_PERMISSION),
+                RC_ANKI_PERMISSION
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RC_ANKI_PERMISSION) {
+            val tracker = AnkiTracker(this)
+            updateAnkiStatus(tracker)
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Доступ к AnkiDroid получен!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-check status when returning (user might have changed AnkiDroid settings)
+        updateAnkiStatus(AnkiTracker(this))
+    }
+
+    private fun updateAnkiStatus(tracker: AnkiTracker) {
+        val hasPermission = ContextCompat.checkSelfPermission(this, ANKI_PERMISSION) ==
+                PackageManager.PERMISSION_GRANTED
+
         when {
             !tracker.isAnkiDroidInstalled() -> {
-                statusView.text = getString(R.string.settings_anki_not_installed)
-                statusView.setTextColor(getColor(R.color.red_primary))
+                ankiStatus.text = getString(R.string.settings_anki_not_installed)
+                ankiStatus.setTextColor(getColor(R.color.red_primary))
+            }
+            !hasPermission -> {
+                ankiStatus.text = getString(R.string.settings_permission_denied)
+                ankiStatus.setTextColor(getColor(R.color.orange_primary))
             }
             !tracker.hasContentProviderAccess() -> {
-                statusView.text = getString(R.string.settings_permission_denied)
-                statusView.setTextColor(getColor(R.color.orange_primary))
+                ankiStatus.text = "Разрешение есть, но API недоступен. Перезапустите AnkiDroid"
+                ankiStatus.setTextColor(getColor(R.color.orange_primary))
             }
             else -> {
-                statusView.text = getString(R.string.settings_permission_granted)
-                statusView.setTextColor(getColor(R.color.green_primary))
+                ankiStatus.text = getString(R.string.settings_permission_granted)
+                ankiStatus.setTextColor(getColor(R.color.green_primary))
             }
         }
     }
