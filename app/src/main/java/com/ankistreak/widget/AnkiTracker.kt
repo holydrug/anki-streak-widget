@@ -52,7 +52,9 @@ class AnkiTracker(private val context: Context) {
     fun hasContentProviderAccess(): Boolean = diagnosAccess().startsWith("ok")
 
     /**
-     * Get total due cards across all decks (new + learn + review).
+     * Get total due cards across top-level decks only.
+     * Sub-decks (containing "::") are excluded because parent decks
+     * already include their children's counts — summing all would double-count.
      */
     fun getTotalDueCards(): Int {
         try {
@@ -63,9 +65,14 @@ class AnkiTracker(private val context: Context) {
             var totalDue = 0
             cursor.use {
                 val countsIdx = it.getColumnIndex(DECK_COUNTS)
+                val nameIdx = it.getColumnIndex("deck_name")
                 if (countsIdx < 0) return -1
 
                 while (it.moveToNext()) {
+                    // Skip sub-decks — parent already includes their counts
+                    val name = if (nameIdx >= 0) it.getString(nameIdx) else ""
+                    if (name?.contains("::") == true) continue
+
                     val countsJson = it.getString(countsIdx) ?: continue
                     try {
                         val arr = JSONArray(countsJson)
