@@ -58,4 +58,15 @@
     <string name="day_fri">пт</string>
     <string name="day_sat">сб</string>
     <string name="day_sun">вс</string>
+
+    <!-- Calendar widget -->
+    <string name="cal_widget_name">Календарь</string>
+    <string name="cal_widget_desc">Расписание событий</string>
+    <string name="cal_today">Сегодня</string>
+    <string name="cal_free_week">Свободная неделя</string>
+    <string name="cal_no_events">Нет запланированных событий</string>
+    <string name="cal_empty_calendar">Календарь пуст</string>
+    <string name="cal_empty_today">Нет событий сегодня</string>
+    <string name="cal_nearest">Ближайшее</string>
+    <string name="cal_no_permission">Нет доступа к календарю</string>
 </resources>

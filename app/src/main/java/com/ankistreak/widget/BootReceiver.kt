@@ -9,6 +9,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             WorkScheduler.scheduleAll(context)
             StreakWidgetProvider.updateAllWidgets(context)
+            CalendarWidgetProvider.updateAllWidgets(context)
         }
     }
 }

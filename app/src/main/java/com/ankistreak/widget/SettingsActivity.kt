@@ -2,6 +2,7 @@ package com.ankistreak.widget
 
 import android.Manifest
 import android.appwidget.AppWidgetManager
+import android.graphics.Color
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -17,6 +18,7 @@ class SettingsActivity : AppCompatActivity() {
         private const val ANKI_PERMISSION = "com.ichi2.anki.permission.READ_WRITE_DATABASE"
         private const val RC_ANKI = 101
         private const val RC_NOTIFICATIONS = 100
+        private const val RC_CALENDAR = 102
     }
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -94,6 +96,21 @@ class SettingsActivity : AppCompatActivity() {
             finish()
         }
 
+        val calBtn = findViewById<Button>(R.id.calendar_permission_button)
+        updateCalendarButton(calBtn)
+        calBtn.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.READ_CALENDAR), RC_CALENDAR
+                )
+            } else {
+                CalendarWidgetProvider.updateAllWidgets(this)
+                android.widget.Toast.makeText(this, "Доступ уже есть!", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
         findViewById<Button>(R.id.debug_button).setOnClickListener {
             startActivity(Intent(this, DebugActivity::class.java))
         }
@@ -116,11 +133,30 @@ class SettingsActivity : AppCompatActivity() {
         if (requestCode == RC_ANKI) {
             updateAnkiStatus()
         }
+        if (requestCode == RC_CALENDAR) {
+            CalendarWidgetProvider.updateAllWidgets(this)
+            updateCalendarButton(findViewById(R.id.calendar_permission_button))
+        }
     }
 
     override fun onResume() {
         super.onResume()
         updateAnkiStatus()
+    }
+
+    private fun updateCalendarButton(btn: Button) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.READ_CALENDAR
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) {
+            btn.text = "Доступ к календарю: разрешён"
+            btn.isEnabled = false
+            btn.alpha = 0.5f
+        } else {
+            btn.text = "Разрешить доступ к календарю"
+            btn.isEnabled = true
+            btn.alpha = 1.0f
+        }
     }
 
     private fun updateAnkiStatus() {

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="2dp">
+
+    <TextView
+        android:id="@+id/cal_ws_day_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8sp"
+        android:textStyle="bold"
+        android:textColor="#4DFFFFFF"
+        android:textAllCaps="true"
+        android:letterSpacing="0.05" />
+
+    <TextView
+        android:id="@+id/cal_ws_day_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="#1AFFFFFF"
+        android:includeFontPadding="false" />
+
+    <ImageView
+        android:id="@+id/cal_ws_dot"
+        android:layout_width="4dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="2dp"
+        android:src="@drawable/calendar_now_dot"
+        android:visibility="invisible"
+        android:importantForAccessibility="no" />
+</LinearLayout>

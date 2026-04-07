@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp">
+
+    <ImageView
+        android:layout_width="7dp"
+        android:layout_height="7dp"
+        android:src="@drawable/calendar_now_dot" />
+
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:layout_weight="1"
+        android:background="@color/cal_now_red"
+        android:alpha="0.5"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/cal_now_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/calendar_today_badge_bg"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginStart="6dp" />
+</LinearLayout>

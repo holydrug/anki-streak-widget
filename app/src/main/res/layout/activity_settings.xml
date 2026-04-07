@@ -188,6 +188,18 @@
             android:textColor="@color/white"
             android:layout_marginBottom="16dp" />
 
+        <!-- Calendar Permission Button -->
+        <Button
+            android:id="@+id/calendar_permission_button"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="Разрешить доступ к календарю"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FF0A84FF"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
         <!-- Debug Button -->
         <Button
             android:id="@+id/debug_button"

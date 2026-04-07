@@ -13,6 +13,9 @@
     <!-- Exact alarms for precise notification timing -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
+    <!-- Calendar events access -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+
     <!-- Android 11+: declare that we interact with AnkiDroid -->
     <queries>
         <package android:name="com.ichi2.anki" />
@@ -65,6 +68,24 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Calendar Widget Provider -->
+        <receiver
+            android:name=".CalendarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/calendar_widget_info" />
+        </receiver>
+
+        <!-- Calendar Widget RemoteViews Service -->
+        <service
+            android:name=".CalendarRemoteViewsService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
     </application>
 

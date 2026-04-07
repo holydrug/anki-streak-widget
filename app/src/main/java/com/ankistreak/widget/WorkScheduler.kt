@@ -17,12 +17,14 @@ object WorkScheduler {
     private const val REMINDER_MEDIUM_WORK = "reminder_medium"
     private const val REMINDER_STRONG_WORK = "reminder_strong"
     private const val REMINDER_CRITICAL_WORK = "reminder_critical"
+    private const val CALENDAR_UPDATE_WORK = "calendar_widget_update"
 
     fun scheduleAll(context: Context) {
         scheduleWidgetUpdates(context)
         scheduleContentTrigger(context)
         scheduleDailyReset(context)
         scheduleReminders(context)
+        scheduleCalendarWidgetUpdates(context)
     }
 
     /**
@@ -125,6 +127,18 @@ object WorkScheduler {
         wm.cancelUniqueWork(REMINDER_MEDIUM_WORK)
         wm.cancelUniqueWork(REMINDER_STRONG_WORK)
         wm.cancelUniqueWork(REMINDER_CRITICAL_WORK)
+    }
+
+    private fun scheduleCalendarWidgetUpdates(context: Context) {
+        val request = PeriodicWorkRequestBuilder<CalendarWidgetUpdateWorker>(
+            15, TimeUnit.MINUTES
+        ).build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            CALENDAR_UPDATE_WORK,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
     }
 
     private fun getDelayUntil(hour: Int, minute: Int): Long {

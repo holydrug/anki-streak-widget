@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar Widget — Hybrid v5 (All Scenarios)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #08080c; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 30px 20px 80px; color: #fff;
+  }
+
+  h1 { font-size: 14px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 4px; }
+  .subtitle { color: #383844; font-size: 12px; margin-bottom: 24px; }
+
+  .theme-row { display: flex; gap: 6px; margin-bottom: 28px; }
+  .theme-row button {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+    padding: 6px 14px; cursor: pointer; color: #666; background: transparent; transition: all 0.15s;
+  }
+  .theme-row button.active { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
+
+  .scenario-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px;
+    margin: 56px 0 4px; text-align: center;
+  }
+  .scenario-label:first-of-type { margin-top: 0; }
+  .sc-teal { color: #64d2ff; }
+  .sc-orange { color: #ff9500; }
+  .sc-red { color: #ff453a; }
+  .sc-green { color: #30d158; }
+  .sc-purple { color: #bf5af2; }
+
+  .scenario-desc {
+    font-size: 12px; color: #444; text-align: center;
+    margin-bottom: 16px; max-width: 460px; line-height: 1.6;
+  }
+  .scenario-data {
+    font-size: 10px; color: #333; text-align: center; margin-bottom: 14px;
+    font-weight: 500; letter-spacing: 0.3px;
+  }
+
+  /* Phone */
+  .phone {
+    width: 390px; background: #000; border-radius: 44px;
+    padding: 55px 16px 35px; position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    margin-bottom: 12px;
+  }
+  .phone::before {
+    content: ''; position: absolute; top: 16px; left: 50%;
+    transform: translateX(-50%); width: 126px; height: 28px;
+    background: #000; border-radius: 20px; z-index: 10;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .phone .sb { display: flex; justify-content: space-between; padding: 0 12px 10px; font-size: 13px; color: #fff; font-weight: 600; }
+
+  /* ========================================= */
+  /*    WIDGET BASE                             */
+  /* ========================================= */
+
+  .w {
+    border-radius: 22px; overflow: hidden; position: relative; transition: all 0.3s;
+  }
+  .w.dark {
+    background: rgba(28,28,32,0.95);
+    box-shadow: 0 1px 16px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.04);
+  }
+  .w.light {
+    background: rgba(255,255,255,0.93);
+    box-shadow: 0 1px 16px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.7);
+  }
+  .w.light * { color: #1c1c1e; }
+  .w.light .m { color: #c4c4c8 !important; }
+  .w.light .m2 { color: #8e8e93 !important; }
+  .w.light .va-month { color: #8e8e93 !important; }
+  .w.light .day-head { border-color: rgba(0,0,0,0.04) !important; }
+  .w.light .fade-b { background: linear-gradient(transparent, rgba(255,255,255,0.96)) !important; }
+  .w.light .ev-row:hover { background: rgba(0,0,0,0.02) !important; }
+  .w.light .now-line { background: #ff3b30 !important; }
+  .w.light .now-dot { background: #ff3b30 !important; }
+  .w.light .now-lbl { background: #ff3b30 !important; color: #fff !important; }
+  .w.light .day-head-today { background: #ff3b30 !important; color: #fff !important; }
+  .w.light .head-count { background: rgba(0,0,0,0.04) !important; color: #8e8e93 !important; }
+  .w.light .rel-tag.soon { background: rgba(255,149,0,0.08) !important; }
+  .w.light .gutter-date { color: #d4d4d8 !important; }
+  .w.light .range-text { color: #d0d0d4 !important; }
+  .w.light .free-week-range { color: #d0d0d4 !important; }
+  .w.light .free-msg { color: #1c1c1e !important; }
+  .w.light .free-sub { color: #8e8e93 !important; }
+  .w.light .next-ev-card { background: rgba(0,0,0,0.03) !important; border-color: rgba(0,0,0,0.05) !important; }
+  .w.light .next-ev-label { color: #8e8e93 !important; }
+  .w.light .next-ev-when { color: #8e8e93 !important; }
+  .w.light .week-strip-day { color: #d0d0d4 !important; }
+  .w.light .week-strip-day.has-event { color: #1c1c1e !important; }
+  .w.light .ws-dot { background: rgba(0,0,0,0.08) !important; }
+  .w.light .ws-dot.active { background: #0a84ff !important; }
+
+  .scroll-area {
+    overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-area::-webkit-scrollbar { width: 2px; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+  .fade-b {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 36px;
+    background: linear-gradient(transparent, rgba(28,28,32,0.98));
+    pointer-events: none; z-index: 2; border-radius: 0 0 22px 22px;
+  }
+
+  /* Colors */
+  .c-work { background: #0a84ff; } .c-personal { background: #30d158; }
+  .c-health { background: #ff9500; } .c-social { background: #bf5af2; }
+  .c-important { background: #ff453a; } .c-travel { background: #64d2ff; }
+
+  /* NOW */
+  .now-row { display: flex; align-items: center; padding: 0 14px; margin: 3px 0; }
+  .now-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff453a; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+  .now-line { flex: 1; height: 1.5px; background: #ff453a; opacity: 0.5; }
+  .now-lbl { font-size: 9px; font-weight: 700; background: #ff453a; color: #fff; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .rel-tag { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-left: 6px; }
+  .rel-tag.soon { background: rgba(255,149,0,0.14); color: #ff9500; }
+  .head-count { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 5px; }
+
+  /* ========================================= */
+  /*    HEADER                                  */
+  /* ========================================= */
+
+  .va-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 16px 9px; border-bottom: 0.5px solid rgba(255,255,255,0.05);
+  }
+  .va-head-left { display: flex; align-items: baseline; gap: 8px; }
+  .va-date { font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+  .va-weekday { font-size: 13px; font-weight: 600; color: #ff453a; }
+  .va-month { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.35); }
+
+  /* ========================================= */
+  /*    EVENT SYSTEM                             */
+  /* ========================================= */
+
+  .day-head {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 10px 16px 5px; border-top: 0.5px solid rgba(255,255,255,0.04);
+  }
+  .day-head:first-child { border-top: none; }
+  .day-head-date { font-size: 13px; font-weight: 700; }
+  .day-head-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.3); }
+  .day-head-today { font-size: 9px; font-weight: 700; background: #ff453a; color: #fff; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .ev-row {
+    display: flex; align-items: flex-start; padding: 6px 14px 6px 0;
+    margin: 0 8px; border-radius: 8px; cursor: pointer; transition: background 0.12s;
+  }
+  .ev-row:hover { background: rgba(255,255,255,0.025); }
+  .ev-bar { width: 3px; min-height: 28px; border-radius: 2px; margin: 2px 10px 2px 8px; flex-shrink: 0; align-self: stretch; }
+  .ev-time-col { width: 46px; flex-shrink: 0; }
+  .ev-time { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.35); line-height: 1.3; }
+  .ev-time-end { font-size: 10px; color: rgba(255,255,255,0.18); }
+  .ev-det { flex: 1; min-width: 0; }
+  .ev-title { font-size: 13px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ev-loc { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.28); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Ghost date (single empty day) */
+  .gutter-row { height: 22px; }
+  .gutter-date { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.1); padding: 4px 16px; }
+
+  /* Range (consecutive empty days) */
+  .range-row { padding: 3px 16px; }
+  .range-text { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.1); }
+
+  /* ========================================= */
+  /*    FREE WEEK / EMPTY STATES                */
+  /* ========================================= */
+
+  /* Week strip — compact horizontal week at top */
+  .week-strip {
+    display: flex; justify-content: space-between; padding: 8px 20px 6px;
+  }
+  .week-strip-day {
+    text-align: center; font-size: 10px; font-weight: 600;
+    color: rgba(255,255,255,0.1); line-height: 1.4;
+  }
+  .week-strip-day.today { color: #ff453a !important; }
+  .week-strip-day.has-event { color: rgba(255,255,255,0.5) !important; }
+  .w.light .week-strip-day.today { color: #ff3b30 !important; }
+
+  .ws-num { font-size: 15px; font-weight: 700; }
+  .ws-name { font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ws-dot-row { display: flex; gap: 2px; justify-content: center; margin-top: 2px; min-height: 5px; }
+  .ws-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.06); }
+  .ws-dot.active { background: #0a84ff; }
+
+  /* Free message area */
+  .free-area {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 20px 24px; text-align: center;
+  }
+  .free-msg { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .free-sub { font-size: 12px; color: rgba(255,255,255,0.25); line-height: 1.5; }
+  .free-week-range { font-size: 11px; color: rgba(255,255,255,0.1); margin-bottom: 14px; font-weight: 500; }
+
+  /* Next event card */
+  .next-ev-card {
+    width: 100%; padding: 10px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04);
+    margin-top: 12px; text-align: left;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .next-ev-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.2); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .next-ev-title { font-size: 13px; font-weight: 600; }
+  .next-ev-when { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 1px; }
+  .next-ev-bar { width: 3px; align-self: stretch; border-radius: 2px; flex-shrink: 0; }
+
+  /* ========================================= */
+  /*    RULES BOX                               */
+  /* ========================================= */
+
+  .rules-box {
+    max-width: 460px; margin: 20px auto 0; padding: 14px 16px; border-radius: 12px;
+    background: rgba(100,210,255,0.04); border: 1px solid rgba(100,210,255,0.1);
+  }
+  .rules-title { font-size: 11px; font-weight: 700; color: #64d2ff; margin-bottom: 8px; }
+  .rules-body { font-size: 12px; color: #555; line-height: 1.8; }
+  .rules-body b { color: #888; }
+</style>
+</head>
+<body>
+
+<h1>Hybrid v5</h1>
+<p class="subtitle">All density scenarios — from busy to completely empty</p>
+
+<div class="theme-row">
+  <button class="active" onclick="setTheme('dark',this)">Dark</button>
+  <button onclick="setTheme('light',this)">Light</button>
+</div>
+
+
+<!-- ============================================ -->
+<!--  SCENARIO 1 — SPARSE (original)              -->
+<!-- ============================================ -->
+
+<div class="scenario-label sc-teal">Сценарий 1 — Разреженная неделя</div>
+<p class="scenario-desc">Типичная неделя: события есть, но не каждый день. Базовый кейс hybrid.</p>
+<div class="scenario-data">Пн:2 · Вт:0 · Ср:1 · Чт:0 · Пт:0 · Сб:1 · Вс:0</div>
+
+<div class="phone">
+  <div class="sb"><span>9:41</span><span>100%</span></div>
+  <div style="height:20px"></div>
+  <div class="w dark">
+    <div class="va-head">
+      <div class="va-head-left">
+        <div class="va-date">7</div>
+        <div><div class="va-weekday">Понедельник</div><div class="va-month">Апрель 2026</div></div>
+      </div>
+      <div class="head-count">4 события</div>
+    </div>
+    <div class="scroll-area" style="max-height:370px">
+      <div style="padding:0 0 32px">
+
+        <div class="day-head">
+          <span class="day-head-today">Сегодня</span>
+          <span class="day-head-date">7 апреля</span>
+          <span class="day-head-sub">Пн</span>
+        </div>
+        <div class="now-row"><div class="now-dot"></div><div class="now-line"></div><div class="now-lbl">9:41</div></div>
+        <div class="ev-row">
+          <div class="ev-bar c-work"></div>
+          <div class="ev-time-col"><div class="ev-time">11:00</div><div class="ev-time-end">12:00</div></div>
+          <div class="ev-det"><div class="ev-title">1-on-1 with manager</div><div class="ev-loc">Google Meet</div></div>
+          <span class="rel-tag soon">через 1ч</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-health"></div>
+          <div class="ev-time-col"><div class="ev-time">18:00</div><div class="ev-time-end">19:00</div></div>
+          <div class="ev-det"><div class="ev-title">Gym</div><div class="ev-loc">World Class</div></div>
+        </div>
+
+        <div class="gutter-row"><div class="gutter-date">8 Вт</div></div>
+
+        <div class="day-head">
+          <span class="day-head-date">9 апреля</span>
+          <span class="day-head-sub">Ср</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-important"></div>
+          <div class="ev-time-col"><div class="ev-time">15:00</div><div class="ev-time-end">16:00</div></div>
+          <div class="ev-det"><div class="ev-title">Dentist</div><div class="ev-loc">Smile Clinic</div></div>
+        </div>
+
+        <div class="range-row"><span class="range-text">10–11 Чт–Пт</span></div>
+
+        <div class="day-head">
+          <span class="day-head-date">12 апреля</span>
+          <span class="day-head-sub">Сб</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-social"></div>
+          <div class="ev-time-col"><div class="ev-time">19:00</div><div class="ev-time-end">22:00</div></div>
+          <div class="ev-det"><div class="ev-title">Birthday Party</div><div class="ev-loc">Karaoke Star</div></div>
+        </div>
+
+        <div class="gutter-row"><div class="gutter-date">13 Вс</div></div>
+
+        <div class="day-head">
+          <span class="day-head-date">14 апреля</span>
+          <span class="day-head-sub">Пн</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-work"></div>
+          <div class="ev-time-col"><div class="ev-time">10:00</div><div class="ev-time-end">11:00</div></div>
+          <div class="ev-det"><div class="ev-title">Sprint Planning</div><div class="ev-loc">Office</div></div>
+        </div>
+
+      </div>
+    </div>
+    <div class="fade-b"></div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!--  SCENARIO 2 — FULL EMPTY WEEK                -->
+<!-- ============================================ -->
+
+<div class="scenario-label sc-red">Сценарий 2 — Полностью пустая неделя</div>
+<p class="scenario-desc">Ни одного события на 7 дней. Но ближайшее событие — через 10 дней. Виджет должен быть полезным, а не пустым прямоугольником.</p>
+<div class="scenario-data">Пн:0 · Вт:0 · Ср:0 · Чт:0 · Пт:0 · Сб:0 · Вс:0 — след. событие 17 апреля</div>
+
+<div class="phone">
+  <div class="sb"><span>9:41</span><span>100%</span></div>
+  <div style="height:20px"></div>
+  <div class="w dark">
+    <div class="va-head">
+      <div class="va-head-left">
+        <div class="va-date">7</div>
+        <div><div class="va-weekday">Понедельник</div><div class="va-month">Апрель 2026</div></div>
+      </div>
+    </div>
+
+    <!-- Compact week strip instead of 7 ghost dates -->
+    <div class="week-strip">
+      <div class="week-strip-day today">
+        <div class="ws-name">Пн</div>
+        <div class="ws-num">7</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вт</div>
+        <div class="ws-num">8</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Ср</div>
+        <div class="ws-num">9</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Чт</div>
+        <div class="ws-num">10</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Пт</div>
+        <div class="ws-num">11</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Сб</div>
+        <div class="ws-num">12</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вс</div>
+        <div class="ws-num">13</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+    </div>
+
+    <div class="free-area" style="padding-top: 28px; padding-bottom: 32px;">
+      <div class="free-msg">Свободная неделя</div>
+      <div class="free-sub">Нет запланированных событий</div>
+
+      <div class="next-ev-card">
+        <div class="next-ev-bar c-work"></div>
+        <div>
+          <div class="next-ev-label">Ближайшее</div>
+          <div class="next-ev-title">Sprint Planning</div>
+          <div class="next-ev-when">Чт, 17 апреля · 10:00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!--  SCENARIO 3 — EMPTY WEEK, NO FUTURE EVENTS   -->
+<!-- ============================================ -->
+
+<div class="scenario-label sc-orange">Сценарий 3 — Вообще ничего нет</div>
+<p class="scenario-desc">Календарь полностью пустой. Ни одного события нигде. Новый пользователь или пустой аккаунт.</p>
+<div class="scenario-data">Нет событий ни на одну дату</div>
+
+<div class="phone">
+  <div class="sb"><span>9:41</span><span>100%</span></div>
+  <div style="height:20px"></div>
+  <div class="w dark">
+    <div class="va-head">
+      <div class="va-head-left">
+        <div class="va-date">7</div>
+        <div><div class="va-weekday">Понедельник</div><div class="va-month">Апрель 2026</div></div>
+      </div>
+    </div>
+
+    <div class="week-strip">
+      <div class="week-strip-day today">
+        <div class="ws-name">Пн</div>
+        <div class="ws-num">7</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вт</div>
+        <div class="ws-num">8</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Ср</div>
+        <div class="ws-num">9</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Чт</div>
+        <div class="ws-num">10</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Пт</div>
+        <div class="ws-num">11</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Сб</div>
+        <div class="ws-num">12</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вс</div>
+        <div class="ws-num">13</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+    </div>
+
+    <div class="free-area" style="padding-top: 36px; padding-bottom: 40px;">
+      <div class="free-msg">Нет событий</div>
+      <div class="free-sub">Календарь пуст</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!--  SCENARIO 4 — ONLY 1 EVENT FAR AWAY          -->
+<!-- ============================================ -->
+
+<div class="scenario-label sc-purple">Сценарий 4 — Одно событие в конце недели</div>
+<p class="scenario-desc">Пусто до субботы, потом одно событие. Week strip показывает точку на Сб. Между — диапазон.</p>
+<div class="scenario-data">Пн:0 · Вт:0 · Ср:0 · Чт:0 · Пт:0 · Сб:1 · Вс:0</div>
+
+<div class="phone">
+  <div class="sb"><span>9:41</span><span>100%</span></div>
+  <div style="height:20px"></div>
+  <div class="w dark">
+    <div class="va-head">
+      <div class="va-head-left">
+        <div class="va-date">7</div>
+        <div><div class="va-weekday">Понедельник</div><div class="va-month">Апрель 2026</div></div>
+      </div>
+      <div class="head-count">1 событие</div>
+    </div>
+
+    <div class="week-strip">
+      <div class="week-strip-day today">
+        <div class="ws-name">Пн</div>
+        <div class="ws-num">7</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вт</div>
+        <div class="ws-num">8</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Ср</div>
+        <div class="ws-num">9</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Чт</div>
+        <div class="ws-num">10</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Пт</div>
+        <div class="ws-num">11</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+      <div class="week-strip-day has-event">
+        <div class="ws-name">Сб</div>
+        <div class="ws-num">12</div>
+        <div class="ws-dot-row"><div class="ws-dot active"></div></div>
+      </div>
+      <div class="week-strip-day">
+        <div class="ws-name">Вс</div>
+        <div class="ws-num">13</div>
+        <div class="ws-dot-row"><div class="ws-dot"></div></div>
+      </div>
+    </div>
+
+    <div style="padding: 0 0 12px;">
+      <div class="day-head" style="border-top:none;">
+        <span class="day-head-today">Сегодня</span>
+        <span class="day-head-date">7 апреля</span>
+        <span class="day-head-sub">Пн</span>
+      </div>
+      <div class="free-area" style="padding: 10px 24px 6px;">
+        <div class="free-sub" style="font-size: 13px;">Нет событий сегодня</div>
+      </div>
+
+      <div class="range-row"><span class="range-text">8–11 Вт–Пт</span></div>
+
+      <div class="day-head">
+        <span class="day-head-date">12 апреля</span>
+        <span class="day-head-sub">Сб</span>
+      </div>
+      <div class="ev-row">
+        <div class="ev-bar c-social"></div>
+        <div class="ev-time-col"><div class="ev-time">19:00</div><div class="ev-time-end">22:00</div></div>
+        <div class="ev-det"><div class="ev-title">Birthday Party</div><div class="ev-loc">Karaoke Star</div></div>
+      </div>
+
+      <div class="gutter-row"><div class="gutter-date">13 Вс</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!--  SCENARIO 5 — BUSY WEEK (for contrast)       -->
+<!-- ============================================ -->
+
+<div class="scenario-label sc-green">Сценарий 5 — Загруженная неделя</div>
+<p class="scenario-desc">Для контраста: почти каждый день есть события. Week strip показывает точки, hybrid mode почти не нужен.</p>
+<div class="scenario-data">Пн:2 · Вт:1 · Ср:2 · Чт:1 · Пт:0 · Сб:1 · Вс:0</div>
+
+<div class="phone">
+  <div class="sb"><span>9:41</span><span>100%</span></div>
+  <div style="height:20px"></div>
+  <div class="w dark">
+    <div class="va-head">
+      <div class="va-head-left">
+        <div class="va-date">7</div>
+        <div><div class="va-weekday">Понедельник</div><div class="va-month">Апрель 2026</div></div>
+      </div>
+      <div class="head-count">9 событий</div>
+    </div>
+    <div class="scroll-area" style="max-height:370px">
+      <div style="padding:0 0 32px">
+
+        <div class="day-head">
+          <span class="day-head-today">Сегодня</span>
+          <span class="day-head-date">7 апреля</span>
+          <span class="day-head-sub">Пн</span>
+        </div>
+        <div class="now-row"><div class="now-dot"></div><div class="now-line"></div><div class="now-lbl">9:41</div></div>
+        <div class="ev-row">
+          <div class="ev-bar c-work"></div>
+          <div class="ev-time-col"><div class="ev-time">11:00</div><div class="ev-time-end">12:00</div></div>
+          <div class="ev-det"><div class="ev-title">1-on-1 with manager</div><div class="ev-loc">Google Meet</div></div>
+          <span class="rel-tag soon">через 1ч</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-health"></div>
+          <div class="ev-time-col"><div class="ev-time">18:00</div><div class="ev-time-end">19:00</div></div>
+          <div class="ev-det"><div class="ev-title">Gym</div><div class="ev-loc">World Class</div></div>
+        </div>
+
+        <div class="day-head">
+          <span class="day-head-date">8 апреля</span>
+          <span class="day-head-sub">Вт</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-work"></div>
+          <div class="ev-time-col"><div class="ev-time">14:00</div><div class="ev-time-end">15:30</div></div>
+          <div class="ev-det"><div class="ev-title">Design Review</div><div class="ev-loc">Figma</div></div>
+        </div>
+
+        <div class="day-head">
+          <span class="day-head-date">9 апреля</span>
+          <span class="day-head-sub">Ср</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-important"></div>
+          <div class="ev-time-col"><div class="ev-time">10:00</div><div class="ev-time-end">11:00</div></div>
+          <div class="ev-det"><div class="ev-title">Client Call</div><div class="ev-loc">Zoom</div></div>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-important"></div>
+          <div class="ev-time-col"><div class="ev-time">15:00</div><div class="ev-time-end">16:00</div></div>
+          <div class="ev-det"><div class="ev-title">Dentist</div><div class="ev-loc">Smile Clinic</div></div>
+        </div>
+
+        <div class="day-head">
+          <span class="day-head-date">10 апреля</span>
+          <span class="day-head-sub">Чт</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-travel"></div>
+          <div class="ev-time-col"><div class="ev-time">9:00</div><div class="ev-time-end">17:00</div></div>
+          <div class="ev-det"><div class="ev-title">Team Offsite</div><div class="ev-loc">Coworking Loft</div></div>
+        </div>
+
+        <div class="gutter-row"><div class="gutter-date">11 Пт</div></div>
+
+        <div class="day-head">
+          <span class="day-head-date">12 апреля</span>
+          <span class="day-head-sub">Сб</span>
+        </div>
+        <div class="ev-row">
+          <div class="ev-bar c-social"></div>
+          <div class="ev-time-col"><div class="ev-time">19:00</div><div class="ev-time-end">22:00</div></div>
+          <div class="ev-det"><div class="ev-title">Birthday Party</div><div class="ev-loc">Karaoke Star</div></div>
+        </div>
+
+        <div class="gutter-row"><div class="gutter-date">13 Вс</div></div>
+
+      </div>
+    </div>
+    <div class="fade-b"></div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!--  RULES                                        -->
+<!-- ============================================ -->
+
+<div class="rules-box" style="margin-top: 56px;">
+  <div class="rules-title">ПОЛНЫЕ ПРАВИЛА HYBRID V5</div>
+  <div class="rules-body">
+    <b>День с событиями</b> → полный заголовок + список событий<br><br>
+    <b>1 пустой день</b> → ghost-строка: "8 Вт" (opacity 10%, высота 22px)<br><br>
+    <b>2+ пустых подряд</b> → диапазон: "10–11 Чт–Пт" (одна строка)<br><br>
+    <b>Пустая неделя целиком</b> → week-strip (горизонтально 7 дней)<br>
+    + центральное сообщение "Свободная неделя"<br>
+    + карточка ближайшего события (если есть)<br><br>
+    <b>Пустая неделя, 1 событие далеко</b> → week-strip с точкой на день события<br>
+    + "Сегодня: нет событий" + диапазон пустых + событие<br><br>
+    <b>Вообще пустой календарь</b> → week-strip + "Нет событий · Календарь пуст"<br><br>
+    <b>Загруженная неделя</b> → обычный agenda flow, ghost только для 1–2 пустых дней
+  </div>
+</div>
+
+<div class="rules-box" style="border-color: rgba(48,209,88,0.1); background: rgba(48,209,88,0.03);">
+  <div class="rules-title" style="color:#30d158;">АДАПТИВНАЯ ЛОГИКА</div>
+  <div class="rules-body">
+    <b>if</b> (событий на неделе == 0) → week-strip + empty state + next event card<br>
+    <b>else if</b> (событий на неделе <= 2 и все далеко) → week-strip сверху + agenda внизу<br>
+    <b>else</b> → чистый agenda со scroll, ghost/range для пустых дней
+  </div>
+</div>
+
+
+<script>
+function setTheme(theme, btn) {
+  document.querySelectorAll('.theme-row button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.w').forEach(w => {
+    w.classList.remove('dark', 'light');
+    w.classList.add(theme);
+  });
+}
+</script>
+
+</body>
+</html>
