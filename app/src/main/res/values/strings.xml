@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AnkiStreak</string>
+    <string name="widget_description">Стрик-трекер для AnkiDroid</string>
+
+    <string name="days_label">дней подряд</string>
+    <string name="days_label_short">дней</string>
+    <string name="streak_lost_label">стрик потерян</string>
+
+    <string name="status_done">Сделано!</string>
+    <string name="status_today_format">Сегодня: %1$d/%2$d</string>
+    <string name="status_burning_format">Сгорит в %1$s</string>
+    <string name="status_critical_format">%1$s!</string>
+    <string name="status_start_over">Начни заново</string>
+
+    <string name="progress_format">%1$d из %2$d карточек</string>
+    <string name="tap_to_open">Нажми → Anki</string>
+    <string name="done_see_tomorrow">Увидимся завтра!</string>
+    <string name="hours_left_format">Осталось %1$d ч!</string>
+    <string name="now_or_never">СЕЙЧАС ИЛИ НИКОГДА</string>
+    <string name="tap_to_start">Нажми чтобы начать</string>
+    <string name="milestone_format">%1$d дней! Рекорд!</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Напоминания AnkiStreak</string>
+    <string name="notif_channel_desc">Напоминания о ежедневных занятиях</string>
+    <string name="notif_soft_title">Время для Anki!</string>
+    <string name="notif_soft_text_format">Стрик %1$d дней. Сделай %2$d карточек чтобы сохранить</string>
+    <string name="notif_medium_title">Стрик под угрозой!</string>
+    <string name="notif_medium_text_format">Осталось %1$d часов. Стрик %2$d дней под угрозой!</string>
+    <string name="notif_strong_title">Стрик сгорает!</string>
+    <string name="notif_strong_text_format">%1$d часа до потери стрика %2$d дней! Это 2 минуты.</string>
+    <string name="notif_critical_title">Последний шанс!</string>
+    <string name="notif_critical_text_format">Стрик %1$d дней сгорит через %2$d часа! Сейчас или никогда.</string>
+    <string name="notif_action_open">Открыть AnkiDroid</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки AnkiStreak</string>
+    <string name="settings_card_goal">Цель карточек в день</string>
+    <string name="settings_notifications">Напоминания</string>
+    <string name="settings_reminder_time">Первое напоминание</string>
+    <string name="settings_critical_time">Критическое напоминание</string>
+    <string name="settings_end_of_day">Конец дня (сброс)</string>
+    <string name="settings_current_streak">Текущий стрик</string>
+    <string name="settings_best_streak">Лучший стрик</string>
+    <string name="settings_save">Сохранить</string>
+    <string name="settings_anki_permission">Разрешение AnkiDroid</string>
+    <string name="settings_anki_permission_desc">Откройте AnkiDroid → Настройки → Расширенные → Разрешить доступ API</string>
+    <string name="settings_anki_not_installed">AnkiDroid не установлен!</string>
+    <string name="settings_permission_granted">Доступ к AnkiDroid: разрешён</string>
+    <string name="settings_permission_denied">Доступ к AnkiDroid: нет доступа</string>
+
+    <!-- Week days -->
+    <string name="day_mon">пн</string>
+    <string name="day_tue">вт</string>
+    <string name="day_wed">ср</string>
+    <string name="day_thu">чт</string>
+    <string name="day_fri">пт</string>
+    <string name="day_sat">сб</string>
+    <string name="day_sun">вс</string>
+</resources>

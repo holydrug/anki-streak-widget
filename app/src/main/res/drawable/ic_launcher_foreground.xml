@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple fire icon -->
+    <path
+        android:fillColor="#FFFF9600"
+        android:pathData="M54,20 C54,20 38,38 38,55 C38,63.8 45.2,71 54,71 C62.8,71 70,63.8 70,55 C70,38 54,20 54,20 Z" />
+    <path
+        android:fillColor="#FFFF4B4B"
+        android:pathData="M54,35 C54,35 44,46 44,55 C44,60.5 48.5,65 54,65 C59.5,65 64,60.5 64,55 C64,46 54,35 54,35 Z" />
+    <path
+        android:fillColor="#FFFFD900"
+        android:pathData="M54,48 C54,48 49,53 49,57 C49,59.8 51.2,62 54,62 C56.8,62 59,59.8 59,57 C59,53 54,48 54,48 Z" />
+</vector>

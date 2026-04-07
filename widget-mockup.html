@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnkiStreak Widget Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    color: #fff;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #8b8ba3;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    color: #6b6b83;
+    font-size: 13px;
+    margin-bottom: 30px;
+  }
+
+  .phone-frame {
+    width: 380px;
+    background: #0f0f1a;
+    border-radius: 40px;
+    padding: 60px 20px 40px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    margin-bottom: 40px;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 25px;
+    background: #1a1a2e;
+    border-radius: 20px;
+  }
+
+  .phone-status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px 15px;
+    font-size: 12px;
+    color: #888;
+    font-weight: 700;
+  }
+
+  .wallpaper-hint {
+    font-size: 11px;
+    color: #444;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  /* ==================== */
+  /*   WIDGET 4x2 STYLE   */
+  /* ==================== */
+
+  .widget {
+    border-radius: 24px;
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    margin: 0 5px;
+  }
+
+  .widget:active {
+    transform: scale(0.97);
+  }
+
+  /* --- State: Done (green) --- */
+  .widget-done {
+    background: linear-gradient(135deg, #58cc02 0%, #46a302 100%);
+    box-shadow: 0 4px 0 #3a8a01, 0 8px 25px rgba(88, 204, 2, 0.3);
+  }
+
+  /* --- State: Pending (orange, morning) --- */
+  .widget-pending-morning {
+    background: linear-gradient(135deg, #ff9600 0%, #ff8200 100%);
+    box-shadow: 0 4px 0 #d97000, 0 8px 25px rgba(255, 150, 0, 0.3);
+  }
+
+  /* --- State: Pending (red, evening) --- */
+  .widget-pending-evening {
+    background: linear-gradient(135deg, #ff4b4b 0%, #e63232 100%);
+    box-shadow: 0 4px 0 #c42828, 0 8px 25px rgba(255, 75, 75, 0.3);
+    animation: pulse-bg 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-bg {
+    0%, 100% { box-shadow: 0 4px 0 #c42828, 0 8px 25px rgba(255, 75, 75, 0.3); }
+    50% { box-shadow: 0 4px 0 #c42828, 0 8px 35px rgba(255, 75, 75, 0.5); }
+  }
+
+  /* --- State: Lost (grey) --- */
+  .widget-lost {
+    background: linear-gradient(135deg, #3c3c4d 0%, #2e2e3d 100%);
+    box-shadow: 0 4px 0 #232330, 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  /* --- State: Milestone --- */
+  .widget-milestone {
+    background: linear-gradient(135deg, #ffd900 0%, #ffb800 100%);
+    box-shadow: 0 4px 0 #d9a000, 0 8px 25px rgba(255, 217, 0, 0.4);
+  }
+
+  /* Widget layout */
+  .widget-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .streak-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .fire-icon {
+    font-size: 38px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    line-height: 1;
+  }
+
+  .streak-number {
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .streak-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .streak-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-badge {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .status-badge-urgent {
+    background: rgba(0,0,0,0.25);
+    animation: badge-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Progress bar */
+  .progress-section {
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.9);
+    transition: width 0.5s ease;
+    position: relative;
+  }
+
+  .progress-bar-fill.animated {
+    background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,1) 100%);
+  }
+
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 2px;
+  }
+
+  .widget-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .progress-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .bottom-message {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ==================== */
+  /*   WEEK DOTS          */
+  /* ==================== */
+
+  .week-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    justify-content: center;
+  }
+
+  .day-dot {
+    width: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .day-dot-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+  }
+
+  .day-dot-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  .dot-done {
+    background: rgba(255,255,255,0.9);
+    color: #58cc02;
+  }
+
+  .dot-done-orange {
+    background: rgba(255,255,255,0.9);
+    color: #ff9600;
+  }
+
+  .dot-done-red {
+    background: rgba(255,255,255,0.9);
+    color: #ff4b4b;
+  }
+
+  .dot-missed {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.3);
+  }
+
+  .dot-today {
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.8);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+  }
+
+  .dot-future {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px dashed rgba(255,255,255,0.2);
+  }
+
+  /* ==================== */
+  /*  COMPACT 2x2 WIDGET  */
+  /* ==================== */
+
+  .widget-compact {
+    width: 170px;
+    border-radius: 24px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .widget-compact:active {
+    transform: scale(0.97);
+  }
+
+  .widget-compact .fire-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .widget-compact .streak-number {
+    font-size: 36px;
+    display: block;
+  }
+
+  .widget-compact .streak-label {
+    font-size: 11px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .widget-compact .progress-bar-bg {
+    height: 10px;
+    margin-bottom: 6px;
+  }
+
+  .widget-compact .progress-text {
+    font-size: 11px;
+  }
+
+  /* ==================== */
+  /*    NOTIFICATION      */
+  /* ==================== */
+
+  .notification {
+    width: 340px;
+    background: #2a2a3d;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease;
+  }
+
+  .notification:hover {
+    transform: translateX(4px);
+  }
+
+  .notif-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .notif-icon-orange { background: linear-gradient(135deg, #ff9600, #ff8200); }
+  .notif-icon-red { background: linear-gradient(135deg, #ff4b4b, #e63232); }
+  .notif-icon-skull { background: linear-gradient(135deg, #6b6b83, #4a4a5e); }
+  .notif-icon-green { background: linear-gradient(135deg, #58cc02, #46a302); }
+
+  .notif-content { flex: 1; }
+
+  .notif-app {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b8ba3;
+    margin-bottom: 2px;
+  }
+
+  .notif-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0f0;
+    line-height: 1.3;
+  }
+
+  .notif-time {
+    font-size: 11px;
+    color: #6b6b83;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .notif-action {
+    display: inline-block;
+    background: rgba(88, 204, 2, 0.15);
+    color: #58cc02;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  /* ==================== */
+  /*    CONTROLS          */
+  /* ==================== */
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .controls button {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #fff;
+  }
+
+  .controls button:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-green { background: #58cc02; }
+  .btn-orange { background: #ff9600; }
+  .btn-red { background: #ff4b4b; }
+  .btn-grey { background: #4a4a5e; }
+  .btn-gold { background: #ffd900; color: #333 !important; }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #58cc02;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 40px 0 15px;
+    text-align: center;
+  }
+
+  .section-desc {
+    font-size: 12px;
+    color: #6b6b83;
+    text-align: center;
+    margin-bottom: 20px;
+    max-width: 400px;
+  }
+
+  .compact-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Celebration overlay */
+  .celebration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: confetti 1.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes confetti {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-60px) rotate(360deg) translateX(var(--dx)); opacity: 0; }
+  }
+
+  .milestone-stars {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 16px;
+    animation: star-spin 2s ease-in-out infinite;
+  }
+
+  @keyframes star-spin {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.2) rotate(10deg); opacity: 0.8; }
+  }
+
+  /* Dynamic gradient animation for urgent state */
+  .widget-pending-critical {
+    background: linear-gradient(135deg, #ff1744 0%, #b71c1c 100%);
+    box-shadow: 0 4px 0 #8b0000, 0 8px 35px rgba(255, 23, 68, 0.4);
+    animation: critical-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes critical-pulse {
+    0%, 100% {
+      box-shadow: 0 4px 0 #8b0000, 0 8px 35px rgba(255, 23, 68, 0.4);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 4px 0 #8b0000, 0 12px 45px rgba(255, 23, 68, 0.6);
+      transform: scale(1.005);
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>AnkiStreak Widget</h1>
+<p class="subtitle">HTML-mockup / Нажимай кнопки для переключения состояний</p>
+
+<div class="controls">
+  <button class="btn-green" onclick="showState('done')">Сделано</button>
+  <button class="btn-orange" onclick="showState('pending-morning')">Утро</button>
+  <button class="btn-red" onclick="showState('pending-evening')">Вечер</button>
+  <button class="btn-red" onclick="showState('pending-critical')" style="background:#b71c1c">Критично</button>
+  <button class="btn-grey" onclick="showState('lost')">Потерян</button>
+  <button class="btn-gold" onclick="showState('milestone')">Milestone</button>
+</div>
+
+<!-- ======= PHONE FRAME WITH WIDGET ======= -->
+
+<div class="phone-frame">
+  <div class="phone-status-bar">
+    <span>12:45</span>
+    <span>100%</span>
+  </div>
+  <div class="wallpaper-hint">Samsung S25 Ultra / Home Screen</div>
+
+  <!-- 4x2 Widget -->
+  <div class="widget widget-pending-morning" id="main-widget" onclick="openAnki()">
+    <!-- Top row -->
+    <div class="widget-top">
+      <div class="streak-section">
+        <span class="fire-icon" id="widget-icon">&#x1F525;</span>
+        <div class="streak-info">
+          <span class="streak-number" id="widget-number">14</span>
+          <span class="streak-label" id="widget-label">дней подряд</span>
+        </div>
+      </div>
+      <div class="status-badge" id="widget-badge">Сегодня: 0/10</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="widget-progress" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="widget-bottom">
+      <span class="progress-text" id="widget-progress-text">0 из 10 карточек</span>
+      <span class="bottom-message" id="widget-message">Нажми чтобы открыть Anki</span>
+    </div>
+
+    <!-- Week dots -->
+    <div class="week-dots" id="widget-dots">
+      <div class="day-dot">
+        <span class="day-dot-label">пн</span>
+        <div class="day-dot-circle dot-done">&#10003;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">вт</span>
+        <div class="day-dot-circle dot-done">&#10003;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">ср</span>
+        <div class="day-dot-circle dot-done">&#10003;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">чт</span>
+        <div class="day-dot-circle dot-missed">&#10007;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">пт</span>
+        <div class="day-dot-circle dot-done">&#10003;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">сб</span>
+        <div class="day-dot-circle dot-done">&#10003;</div>
+      </div>
+      <div class="day-dot">
+        <span class="day-dot-label">вс</span>
+        <div class="day-dot-circle dot-today">?</div>
+      </div>
+    </div>
+
+    <!-- Milestone decoration (hidden by default) -->
+    <span class="milestone-stars" id="widget-stars" style="display:none">&#11088;</span>
+  </div>
+</div>
+
+<!-- ======= COMPACT WIDGETS ======= -->
+
+<div class="section-title">2x2 Compact</div>
+<p class="section-desc">Альтернативный компактный размер</p>
+
+<div class="compact-row">
+  <div class="widget widget-compact widget-done" style="box-shadow: 0 4px 0 #3a8a01, 0 8px 25px rgba(88,204,2,0.3)">
+    <span class="fire-icon">&#x1F525;</span>
+    <span class="streak-number">15</span>
+    <span class="streak-label">дней</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:100%"></div></div>
+    <span class="progress-text">10/10 &#10003;</span>
+  </div>
+
+  <div class="widget widget-compact widget-pending-morning" style="box-shadow: 0 4px 0 #d97000, 0 8px 25px rgba(255,150,0,0.3)">
+    <span class="fire-icon">&#x1F525;</span>
+    <span class="streak-number">14</span>
+    <span class="streak-label">дней</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:30%"></div></div>
+    <span class="progress-text">3/10</span>
+  </div>
+
+  <div class="widget widget-compact widget-lost" style="box-shadow: 0 4px 0 #232330, 0 8px 25px rgba(0,0,0,0.3)">
+    <span class="fire-icon">&#x1F480;</span>
+    <span class="streak-number">0</span>
+    <span class="streak-label">дней</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:0%"></div></div>
+    <span class="progress-text">Начни заново</span>
+  </div>
+
+  <div class="widget widget-compact widget-milestone" style="box-shadow: 0 4px 0 #d9a000, 0 8px 25px rgba(255,217,0,0.4)">
+    <span class="fire-icon">&#x1F3C6;</span>
+    <span class="streak-number">30</span>
+    <span class="streak-label">дней!</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:100%"></div></div>
+    <span class="progress-text">&#11088; Рекорд!</span>
+  </div>
+</div>
+
+<!-- ======= NOTIFICATIONS ======= -->
+
+<div class="section-title">Уведомления</div>
+<p class="section-desc">Эскалация напоминаний в течение дня</p>
+
+<div class="notification">
+  <div class="notif-icon notif-icon-orange">&#x1F525;</div>
+  <div class="notif-content">
+    <div class="notif-app">AnkiStreak</div>
+    <div class="notif-text">Стрик 14 дней! Сделай 10 карточек чтобы сохранить</div>
+    <div class="notif-action">&#9654; Открыть AnkiDroid</div>
+  </div>
+  <div class="notif-time">12:00</div>
+</div>
+
+<div class="notification">
+  <div class="notif-icon notif-icon-orange">&#9888;&#65039;</div>
+  <div class="notif-content">
+    <div class="notif-app">AnkiStreak</div>
+    <div class="notif-text">Осталось 7 часов. 14 дней стрика под угрозой!</div>
+    <div class="notif-action">&#9654; Открыть AnkiDroid</div>
+  </div>
+  <div class="notif-time">17:00</div>
+</div>
+
+<div class="notification" style="border: 1px solid rgba(255,75,75,0.3)">
+  <div class="notif-icon notif-icon-red">&#x1F6A8;</div>
+  <div class="notif-content">
+    <div class="notif-app">AnkiStreak</div>
+    <div class="notif-text">3 часа до потери стрика! Это займёт 2 минуты.</div>
+    <div class="notif-action">&#9654; Открыть AnkiDroid</div>
+  </div>
+  <div class="notif-time">20:00</div>
+</div>
+
+<div class="notification" style="border: 1px solid rgba(255,23,68,0.5); background: #2a1a2d">
+  <div class="notif-icon notif-icon-red" style="background: linear-gradient(135deg, #ff1744, #b71c1c)">&#x1F480;</div>
+  <div class="notif-content">
+    <div class="notif-app">AnkiStreak &bull; СРОЧНО</div>
+    <div class="notif-text">Стрик 14 дней сгорит через 2 часа! Сейчас или никогда.</div>
+    <div class="notif-action">&#9654; Открыть AnkiDroid</div>
+  </div>
+  <div class="notif-time">22:00</div>
+</div>
+
+<div class="notification" style="border: 1px solid rgba(88,204,2,0.3)">
+  <div class="notif-icon notif-icon-green">&#127881;</div>
+  <div class="notif-content">
+    <div class="notif-app">AnkiStreak</div>
+    <div class="notif-text">&#11088; 30 дней подряд! Ты невероятен!</div>
+  </div>
+  <div class="notif-time">milestone</div>
+</div>
+
+<!-- ======= COLOR TIMELINE ======= -->
+
+<div class="section-title">Цвет в течение дня</div>
+<p class="section-desc">Виджет меняет цвет если ты ещё не занимался</p>
+
+<div style="display:flex; gap:2px; max-width:400px; margin: 0 auto 60px; border-radius:12px; overflow:hidden; height:50px">
+  <div style="flex:1; background: linear-gradient(180deg, #ff9600, #ffb340); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">06:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #ff8200, #ff9600); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">12:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #ff6b35, #ff8200); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">15:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #ff4b4b, #ff6b35); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">18:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #e63232, #ff4b4b); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">20:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #b71c1c, #e63232); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">22:00</span>
+  </div>
+  <div style="flex:1; background: linear-gradient(180deg, #8b0000, #b71c1c); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px">
+    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8)">00:00</span>
+  </div>
+</div>
+
+<script>
+const states = {
+  'done': {
+    className: 'widget-done',
+    icon: '&#x1F525;',
+    number: '15',
+    label: 'дней подряд',
+    badge: '&#10003; Сделано!',
+    badgeClass: 'status-badge',
+    progress: 100,
+    progressText: '10 из 10 карточек',
+    message: 'Отлично! Увидимся завтра',
+    stars: false,
+    dots: ['done','done','done','missed','done','done','done-current']
+  },
+  'pending-morning': {
+    className: 'widget-pending-morning',
+    icon: '&#x1F525;',
+    number: '14',
+    label: 'дней подряд',
+    badge: 'Сегодня: 0/10',
+    badgeClass: 'status-badge',
+    progress: 0,
+    progressText: '0 из 10 карточек',
+    message: 'Нажми чтобы открыть Anki',
+    stars: false,
+    dots: ['done','done','done','missed','done','done','today']
+  },
+  'pending-evening': {
+    className: 'widget-pending-evening',
+    icon: '&#x1F525;',
+    number: '14',
+    label: 'дней подряд',
+    badge: '&#9888; Сгорит в 00:00',
+    badgeClass: 'status-badge status-badge-urgent',
+    progress: 0,
+    progressText: '0 из 10 карточек',
+    message: '&#9200; Осталось 4 часа!',
+    stars: false,
+    dots: ['done','done','done','missed','done','done','today']
+  },
+  'pending-critical': {
+    className: 'widget-pending-critical',
+    icon: '&#x1F525;',
+    number: '14',
+    label: 'дней подряд',
+    badge: '&#x1F480; 1 час!',
+    badgeClass: 'status-badge status-badge-urgent',
+    progress: 0,
+    progressText: '0 из 10 карточек',
+    message: 'СЕЙЧАС ИЛИ НИКОГДА',
+    stars: false,
+    dots: ['done','done','done','missed','done','done','today']
+  },
+  'lost': {
+    className: 'widget-lost',
+    icon: '&#x1F480;',
+    number: '0',
+    label: 'стрик потерян',
+    badge: 'Начни заново',
+    badgeClass: 'status-badge',
+    progress: 0,
+    progressText: '0 из 10 карточек',
+    message: 'Нажми чтобы начать',
+    stars: false,
+    dots: ['done','done','done','missed','done','done','missed-today']
+  },
+  'milestone': {
+    className: 'widget-milestone',
+    icon: '&#x1F3C6;',
+    number: '30',
+    label: 'дней подряд!',
+    badge: '&#11088; Рекорд!',
+    badgeClass: 'status-badge',
+    progress: 100,
+    progressText: '10 из 10 карточек',
+    message: 'Ты невероятен!',
+    stars: true,
+    dots: ['done','done','done','done','done','done','done-current']
+  }
+};
+
+function showState(stateName) {
+  const state = states[stateName];
+  const widget = document.getElementById('main-widget');
+
+  // Remove all state classes
+  widget.className = 'widget ' + state.className;
+
+  document.getElementById('widget-icon').innerHTML = state.icon;
+  document.getElementById('widget-number').textContent = state.number;
+  document.getElementById('widget-label').textContent = state.label;
+
+  const badge = document.getElementById('widget-badge');
+  badge.innerHTML = state.badge;
+  badge.className = state.badgeClass;
+
+  document.getElementById('widget-progress').style.width = state.progress + '%';
+  document.getElementById('widget-progress-text').innerHTML = state.progressText;
+  document.getElementById('widget-message').innerHTML = state.message;
+  document.getElementById('widget-stars').style.display = state.stars ? 'inline' : 'none';
+
+  // Update dots
+  const dotsContainer = document.getElementById('widget-dots');
+  const days = ['пн','вт','ср','чт','пт','сб','вс'];
+  const dotTypes = state.dots;
+  let dotsHTML = '';
+  dotTypes.forEach((type, i) => {
+    let circleClass, content;
+    switch(type) {
+      case 'done':
+        circleClass = stateName === 'milestone' ? 'dot-done' :
+                     stateName.includes('pending') || stateName === 'pending-critical' ? 'dot-done-orange' : 'dot-done';
+        content = '&#10003;';
+        break;
+      case 'done-current':
+        circleClass = 'dot-done';
+        content = '&#10003;';
+        break;
+      case 'missed':
+        circleClass = 'dot-missed';
+        content = '&#10007;';
+        break;
+      case 'today':
+        circleClass = 'dot-today';
+        content = '?';
+        break;
+      case 'missed-today':
+        circleClass = 'dot-missed';
+        content = '&#10007;';
+        break;
+      default:
+        circleClass = 'dot-future';
+        content = '';
+    }
+    dotsHTML += `<div class="day-dot">
+      <span class="day-dot-label">${days[i]}</span>
+      <div class="day-dot-circle ${circleClass}">${content}</div>
+    </div>`;
+  });
+  dotsContainer.innerHTML = dotsHTML;
+}
+
+function openAnki() {
+  // In the real widget, this opens AnkiDroid
+  const widget = document.getElementById('main-widget');
+  widget.style.transform = 'scale(0.95)';
+  setTimeout(() => { widget.style.transform = ''; }, 150);
+}
+</script>
+
+</body>
+</html>

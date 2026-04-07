@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_pending"
+    android:padding="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="14dp"
+        android:gravity="center_vertical">
+
+        <!-- Top row: icon + streak + badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <!-- Fire/Skull emoji -->
+            <TextView
+                android:id="@+id/widget_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔥"
+                android:textSize="32sp"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Streak number + label -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_streak_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="14"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:lineSpacingExtra="-4dp" />
+
+                <TextView
+                    android:id="@+id/widget_streak_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/days_label"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white_70"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.08" />
+            </LinearLayout>
+
+            <!-- Status badge -->
+            <TextView
+                android:id="@+id/widget_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Сегодня: 0/10"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:background="@drawable/badge_bg" />
+        </LinearLayout>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/widget_progress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_bar_style"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Bottom row: progress text + message -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/widget_progress_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0 из 10 карточек"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/white_90" />
+
+            <TextView
+                android:id="@+id/widget_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tap_to_open"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/white_70" />
+        </LinearLayout>
+
+        <!-- Week dots row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_mon" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_mon" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_tue" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_tue" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_wed" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_wed" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_thu" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_thu" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_fri" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_fri" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_sat" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_sat" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/dot_done_green"
+                    android:textStyle="bold" android:background="@drawable/dot_done" android:text="✓" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/day_sun" android:textSize="9sp" android:textColor="@color/white_50"
+                    android:textStyle="bold" android:textAllCaps="true" />
+                <TextView android:id="@+id/dot_sun" android:layout_width="22dp" android:layout_height="22dp"
+                    android:gravity="center" android:textSize="10sp" android:textColor="@color/white"
+                    android:textStyle="bold" android:background="@drawable/dot_today" android:text="?" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

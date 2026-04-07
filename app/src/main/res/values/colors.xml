@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="green_primary">#FF58CC02</color>
+    <color name="green_dark">#FF46A302</color>
+    <color name="green_shadow">#FF3A8A01</color>
+
+    <color name="orange_primary">#FFFF9600</color>
+    <color name="orange_dark">#FFFF8200</color>
+
+    <color name="red_primary">#FFFF4B4B</color>
+    <color name="red_dark">#FFE63232</color>
+
+    <color name="critical_primary">#FFFF1744</color>
+    <color name="critical_dark">#FFB71C1C</color>
+
+    <color name="grey_primary">#FF3C3C4D</color>
+    <color name="grey_dark">#FF2E2E3D</color>
+
+    <color name="gold_primary">#FFFFD900</color>
+    <color name="gold_dark">#FFFFB800</color>
+
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_90">#E6FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_50">#80FFFFFF</color>
+    <color name="white_25">#40FFFFFF</color>
+    <color name="white_10">#1AFFFFFF</color>
+    <color name="black_20">#33000000</color>
+    <color name="black_30">#4D000000</color>
+
+    <color name="bg_dark">#FF1A1A2E</color>
+    <color name="surface_dark">#FF2A2A3D</color>
+
+    <color name="dot_done_green">#FF58CC02</color>
+    <color name="dot_missed">#40FFFFFF</color>
+</resources>
