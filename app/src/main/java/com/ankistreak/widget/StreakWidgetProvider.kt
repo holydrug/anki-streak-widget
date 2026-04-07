@@ -7,26 +7,16 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.util.concurrent.TimeUnit
 
 class StreakWidgetProvider : AppWidgetProvider() {
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        for (id in appWidgetIds) {
-            updateWidget(context, appWidgetManager, id)
-        }
-    }
-
-    override fun onEnabled(context: Context) {
-        WorkScheduler.scheduleAll(context)
-    }
-
     companion object {
+        const val ACTION_TAP = "com.ankistreak.widget.TAP"
 
         fun updateAllWidgets(context: Context) {
             val awm = AppWidgetManager.getInstance(context)
@@ -38,6 +28,21 @@ class StreakWidgetProvider : AppWidgetProvider() {
             }
         }
 
+        /**
+         * Schedule quick refresh bursts: 1, 2, 5, 10 min from now.
+         * So when user returns from AnkiDroid, widget updates within ~1 min.
+         */
+        fun scheduleQuickUpdates(context: Context) {
+            val wm = WorkManager.getInstance(context)
+            for (delayMin in listOf(1L, 2L, 5L, 10L)) {
+                wm.enqueue(
+                    OneTimeWorkRequestBuilder<WidgetUpdateWorker>()
+                        .setInitialDelay(delayMin, TimeUnit.MINUTES)
+                        .build()
+                )
+            }
+        }
+
         private fun updateWidget(
             context: Context,
             awm: AppWidgetManager,
@@ -46,7 +51,6 @@ class StreakWidgetProvider : AppWidgetProvider() {
             val streak = StreakManager(context)
             val tracker = AnkiTracker(context)
 
-            // Refresh streak state
             streak.checkStreakContinuity()
 
             val reviewed = tracker.getReviewedToday()
@@ -68,9 +72,9 @@ class StreakWidgetProvider : AppWidgetProvider() {
 
             // -- Icon --
             val icon = when (state) {
-                WidgetState.LOST -> "\uD83D\uDC80" // skull
-                WidgetState.MILESTONE -> "\uD83C\uDFC6" // trophy
-                else -> "\uD83D\uDD25" // fire
+                WidgetState.LOST -> "\uD83D\uDC80"
+                WidgetState.MILESTONE -> "\uD83C\uDFC6"
+                else -> "\uD83D\uDD25"
             }
             views.setTextViewText(R.id.widget_icon, icon)
 
@@ -128,16 +132,15 @@ class StreakWidgetProvider : AppWidgetProvider() {
             // -- Week dots --
             updateWeekDots(context, views, streak)
 
-            // -- Click: open AnkiDroid --
-            val ankiIntent = context.packageManager
-                .getLaunchIntentForPackage(AnkiTracker.ANKI_PACKAGE)
-                ?: Intent(context, SettingsActivity::class.java)
-
-            val pi = PendingIntent.getActivity(
-                context, widgetId, ankiIntent,
+            // -- Click: broadcast to us first, then open AnkiDroid --
+            val tapIntent = Intent(context, StreakWidgetProvider::class.java).apply {
+                action = ACTION_TAP
+            }
+            val tapPi = PendingIntent.getBroadcast(
+                context, widgetId, tapIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            views.setOnClickPendingIntent(R.id.widget_root, pi)
+            views.setOnClickPendingIntent(R.id.widget_root, tapPi)
 
             awm.updateAppWidget(widgetId, views)
         }
@@ -147,17 +150,13 @@ class StreakWidgetProvider : AppWidgetProvider() {
                 return if (streak.isMilestone()) WidgetState.MILESTONE else WidgetState.DONE
             }
 
-            // If user has some progress today but hasn't hit goal yet,
-            // show pending state (not "lost") even if streak is 0
             val hasProgress = reviewed > 0
             val hasActiveStreak = streak.currentStreak > 0
 
             if (!hasActiveStreak && !hasProgress && streak.lastStudyDate.isNotEmpty()) {
-                // Had a streak before but lost it, and no progress today
                 return WidgetState.LOST
             }
 
-            // Fresh install OR has some progress OR has active streak → show pending
             val hour = LocalTime.now().hour
             return when {
                 hour >= 22 -> WidgetState.PENDING_CRITICAL
@@ -206,6 +205,36 @@ class StreakWidgetProvider : AppWidgetProvider() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+        for (id in appWidgetIds) {
+            updateWidget(context, appWidgetManager, id)
+        }
+    }
+
+    override fun onEnabled(context: Context) {
+        WorkScheduler.scheduleAll(context)
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        if (intent.action == ACTION_TAP) {
+            // 1. Schedule quick updates for when user returns from AnkiDroid
+            scheduleQuickUpdates(context)
+
+            // 2. Open AnkiDroid
+            val ankiIntent = context.packageManager
+                .getLaunchIntentForPackage(AnkiTracker.ANKI_PACKAGE)
+                ?: Intent(context, SettingsActivity::class.java)
+            ankiIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(ankiIntent)
         }
     }
 
