@@ -25,33 +25,29 @@ jobs:
       - name: Build Debug APK
         run: gradle assembleDebug
 
-      - name: Get version
-        id: version
-        run: |
-          VERSION="v1.0.$(date +%Y%m%d)-$(echo $GITHUB_SHA | cut -c1-7)"
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/AnkiStreak-${{ steps.version.outputs.tag }}.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/AnkiStreak.apk
+
+      - name: Delete old release
+        run: gh release delete latest --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: AnkiStreak ${{ steps.version.outputs.tag }}
+          tag_name: latest
+          name: "AnkiStreak — скачай APK"
           body: |
             ## AnkiStreak Widget
 
-            Скачай APK и установи на телефон:
-            1. Скачай `AnkiStreak-*.apk` ниже
+            **Сборка:** `${{ github.sha }}` от `${{ github.event.head_commit.timestamp }}`
+
+            ### Установка
+            1. Скачай **AnkiStreak.apk** ниже
             2. Открой на телефоне → Установить
             3. В AnkiDroid: Настройки → Расширенные → Разрешить доступ API
             4. Зажми домашний экран → Виджеты → AnkiStreak
-          files: |
-            app/build/outputs/apk/debug/AnkiStreak-${{ steps.version.outputs.tag }}.apk
-
-      - name: Upload APK (artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: AnkiStreak-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+            5. Samsung: Настройки → Батарея → AnkiStreak → Не ограничивать
+          files: app/build/outputs/apk/debug/AnkiStreak.apk
+          make_latest: true
