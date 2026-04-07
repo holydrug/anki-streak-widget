@@ -53,6 +53,12 @@ class StreakWidgetProvider : AppWidgetProvider() {
 
             streak.checkStreakContinuity()
 
+            // Auto-sync card goal from AnkiDroid daily limits
+            val ankiLimit = tracker.getAnkiDailyLimit()
+            if (ankiLimit > 0) {
+                streak.cardGoal = ankiLimit
+            }
+
             val due = tracker.getTotalDueCards()
             val reviewed = tracker.getReviewedToday()
             streak.reportReviews(reviewed)

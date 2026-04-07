@@ -3,6 +3,7 @@ package com.ankistreak.widget
 import android.content.Context
 import android.net.Uri
 import org.json.JSONArray
+import org.json.JSONObject
 import java.time.LocalDate
 
 class AnkiTracker(private val context: Context) {
@@ -52,9 +53,9 @@ class AnkiTracker(private val context: Context) {
     fun hasContentProviderAccess(): Boolean = diagnosAccess().startsWith("ok")
 
     /**
-     * Get total due cards across top-level decks only.
-     * Sub-decks (containing "::") are excluded because parent decks
-     * already include their children's counts — summing all would double-count.
+     * Get stable due count: only NEW + REVIEW for top-level decks.
+     * LEARN cards (index 1) are excluded — they fluctuate as cards
+     * move through learning steps and cause wild delta swings.
      */
     fun getTotalDueCards(): Int {
         try {
@@ -69,14 +70,14 @@ class AnkiTracker(private val context: Context) {
                 if (countsIdx < 0) return -1
 
                 while (it.moveToNext()) {
-                    // Skip sub-decks — parent already includes their counts
                     val name = if (nameIdx >= 0) it.getString(nameIdx) else ""
                     if (name?.contains("::") == true) continue
 
                     val countsJson = it.getString(countsIdx) ?: continue
                     try {
                         val arr = JSONArray(countsJson)
-                        totalDue += arr.optInt(0, 0) + arr.optInt(1, 0) + arr.optInt(2, 0)
+                        // [0]=new, [1]=learn (SKIP), [2]=review
+                        totalDue += arr.optInt(0, 0) + arr.optInt(2, 0)
                     } catch (_: Exception) { }
                 }
             }
@@ -87,11 +88,43 @@ class AnkiTracker(private val context: Context) {
     }
 
     /**
-     * Incremental tracking: compare current due count with last check.
-     * If due went DOWN since last check → user studied those cards.
-     * If due went UP → new day / new cards added, don't subtract.
-     *
-     * This works regardless of when the app was installed.
+     * Read AnkiDroid daily limits from deck options.
+     * Returns new_per_day + reviews_per_day from the first top-level deck.
+     * Returns -1 if unable to read.
+     */
+    fun getAnkiDailyLimit(): Int {
+        try {
+            val cursor = context.contentResolver.query(
+                DECK_URI, null, null, null, null
+            ) ?: return -1
+
+            cursor.use {
+                val optIdx = it.getColumnIndex("options")
+                val nameIdx = it.getColumnIndex("deck_name")
+                if (optIdx < 0) return -1
+
+                while (it.moveToNext()) {
+                    val name = if (nameIdx >= 0) it.getString(nameIdx) else ""
+                    if (name?.contains("::") == true) continue
+
+                    val optJson = it.getString(optIdx) ?: continue
+                    try {
+                        val opts = JSONObject(optJson)
+                        val newPerDay = opts.optJSONObject("new")?.optInt("perDay", 5) ?: 5
+                        val revPerDay = opts.optJSONObject("rev")?.optInt("perDay", 50) ?: 50
+                        return newPerDay + revPerDay
+                    } catch (_: Exception) { }
+                }
+            }
+            return -1
+        } catch (e: Exception) {
+            return -1
+        }
+    }
+
+    /**
+     * Incremental tracking of NEW + REVIEW cards only.
+     * Learn cards excluded for stability.
      */
     fun getReviewedToday(): Int {
         val today = LocalDate.now().toString()
@@ -113,15 +146,11 @@ class AnkiTracker(private val context: Context) {
         if (lastDue >= 0 && lastCheckDate == today) {
             val delta = lastDue - currentDue
             if (delta > 0) {
-                // Due went down → user reviewed cards
                 val newTotal = getTodayCount() + delta
                 prefs.edit().putInt(KEY_REVIEWED_TODAY, newTotal).apply()
             }
         }
-        // If last check was yesterday/before → this is first check of the day.
-        // Just save current due as baseline, don't count anything yet.
 
-        // Save current state for next check
         prefs.edit()
             .putInt(KEY_LAST_DUE, currentDue)
             .putString(KEY_LAST_CHECK_DATE, today)
