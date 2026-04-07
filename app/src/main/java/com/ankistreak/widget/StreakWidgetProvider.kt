@@ -147,13 +147,18 @@ class StreakWidgetProvider : AppWidgetProvider() {
             if (streak.isTodayDone) {
                 return if (streak.isMilestone()) WidgetState.MILESTONE else WidgetState.DONE
             }
-            if (streak.currentStreak == 0 && streak.lastStudyDate.isEmpty()) {
-                return WidgetState.LOST
-            }
-            if (streak.currentStreak == 0) {
+
+            // If user has some progress today but hasn't hit goal yet,
+            // show pending state (not "lost") even if streak is 0
+            val hasProgress = reviewed > 0
+            val hasActiveStreak = streak.currentStreak > 0
+
+            if (!hasActiveStreak && !hasProgress && streak.lastStudyDate.isNotEmpty()) {
+                // Had a streak before but lost it, and no progress today
                 return WidgetState.LOST
             }
 
+            // Fresh install OR has some progress OR has active streak → show pending
             val hour = LocalTime.now().hour
             return when {
                 hour >= 22 -> WidgetState.PENDING_CRITICAL

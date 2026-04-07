@@ -14,8 +14,8 @@ class AnkiTracker(private val context: Context) {
         private const val DECK_COUNTS = "deck_counts"
 
         private const val PREFS_NAME = "anki_tracker"
-        private const val KEY_INITIAL_DUE = "initial_due"
-        private const val KEY_INITIAL_DATE = "initial_date"
+        private const val KEY_LAST_DUE = "last_due_check"
+        private const val KEY_LAST_CHECK_DATE = "last_check_date"
         private const val KEY_REVIEWED_TODAY = "reviewed_today"
         private const val KEY_REVIEW_DATE = "review_date"
     }
@@ -31,10 +31,6 @@ class AnkiTracker(private val context: Context) {
         }
     }
 
-    /**
-     * Try to access AnkiDroid Content Provider and return diagnostic info.
-     * Returns: "ok" on success, or error description on failure.
-     */
     fun diagnosAccess(): String {
         return try {
             val cursor = context.contentResolver.query(DECK_URI, null, null, null, null)
@@ -44,7 +40,7 @@ class AnkiTracker(private val context: Context) {
                 cursor.close()
                 "ok (decks: $count, columns: $cols)"
             } else {
-                "cursor=null (API выключен в AnkiDroid или нет колод)"
+                "cursor=null (API выключен в AnkiDroid)"
             }
         } catch (e: SecurityException) {
             "SecurityException: ${e.message}"
@@ -53,10 +49,11 @@ class AnkiTracker(private val context: Context) {
         }
     }
 
-    fun hasContentProviderAccess(): Boolean {
-        return diagnosAccess().startsWith("ok")
-    }
+    fun hasContentProviderAccess(): Boolean = diagnosAccess().startsWith("ok")
 
+    /**
+     * Get total due cards across all decks (new + learn + review).
+     */
     fun getTotalDueCards(): Int {
         try {
             val cursor = context.contentResolver.query(
@@ -72,65 +69,64 @@ class AnkiTracker(private val context: Context) {
                     val countsJson = it.getString(countsIdx) ?: continue
                     try {
                         val arr = JSONArray(countsJson)
-                        val newCount = arr.optInt(0, 0)
-                        val learnCount = arr.optInt(1, 0)
-                        val reviewCount = arr.optInt(2, 0)
-                        totalDue += newCount + learnCount + reviewCount
+                        totalDue += arr.optInt(0, 0) + arr.optInt(1, 0) + arr.optInt(2, 0)
                     } catch (_: Exception) { }
                 }
             }
             return totalDue
-        } catch (e: SecurityException) {
-            return -1
         } catch (e: Exception) {
             return -1
         }
     }
 
-    fun captureStartOfDay() {
-        val today = LocalDate.now().toString()
-        val storedDate = prefs.getString(KEY_INITIAL_DATE, "")
-
-        if (storedDate != today) {
-            val due = getTotalDueCards()
-            if (due >= 0) {
-                prefs.edit()
-                    .putInt(KEY_INITIAL_DUE, due)
-                    .putString(KEY_INITIAL_DATE, today)
-                    .putInt(KEY_REVIEWED_TODAY, 0)
-                    .putString(KEY_REVIEW_DATE, today)
-                    .apply()
-            }
-        }
-    }
-
+    /**
+     * Incremental tracking: compare current due count with last check.
+     * If due went DOWN since last check → user studied those cards.
+     * If due went UP → new day / new cards added, don't subtract.
+     *
+     * This works regardless of when the app was installed.
+     */
     fun getReviewedToday(): Int {
         val today = LocalDate.now().toString()
-        val storedDate = prefs.getString(KEY_INITIAL_DATE, "")
+        val currentDue = getTotalDueCards()
+        if (currentDue < 0) return getTodayCount()
 
-        if (storedDate != today) {
-            captureStartOfDay()
+        val lastCheckDate = prefs.getString(KEY_LAST_CHECK_DATE, "") ?: ""
+        val lastDue = prefs.getInt(KEY_LAST_DUE, -1)
+
+        // Reset counter if new day
+        if (prefs.getString(KEY_REVIEW_DATE, "") != today) {
+            prefs.edit()
+                .putInt(KEY_REVIEWED_TODAY, 0)
+                .putString(KEY_REVIEW_DATE, today)
+                .apply()
         }
 
-        val initialDue = prefs.getInt(KEY_INITIAL_DUE, -1)
-        if (initialDue < 0) return 0
+        // If we have a previous check from today, calculate delta
+        if (lastDue >= 0 && lastCheckDate == today) {
+            val delta = lastDue - currentDue
+            if (delta > 0) {
+                // Due went down → user reviewed cards
+                val newTotal = getTodayCount() + delta
+                prefs.edit().putInt(KEY_REVIEWED_TODAY, newTotal).apply()
+            }
+        }
+        // If last check was yesterday/before → this is first check of the day.
+        // Just save current due as baseline, don't count anything yet.
 
-        val currentDue = getTotalDueCards()
-        if (currentDue < 0) return prefs.getInt(KEY_REVIEWED_TODAY, 0)
-
-        val calculated = maxOf(0, initialDue - currentDue)
-
-        val previousMax = if (prefs.getString(KEY_REVIEW_DATE, "") == today) {
-            prefs.getInt(KEY_REVIEWED_TODAY, 0)
-        } else 0
-
-        val reviewed = maxOf(calculated, previousMax)
-
+        // Save current state for next check
         prefs.edit()
-            .putInt(KEY_REVIEWED_TODAY, reviewed)
-            .putString(KEY_REVIEW_DATE, today)
+            .putInt(KEY_LAST_DUE, currentDue)
+            .putString(KEY_LAST_CHECK_DATE, today)
             .apply()
 
-        return reviewed
+        return getTodayCount()
+    }
+
+    private fun getTodayCount(): Int {
+        val today = LocalDate.now().toString()
+        return if (prefs.getString(KEY_REVIEW_DATE, "") == today) {
+            prefs.getInt(KEY_REVIEWED_TODAY, 0)
+        } else 0
     }
 }
