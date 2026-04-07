@@ -48,7 +48,6 @@ class StreakWidgetProvider : AppWidgetProvider() {
 
             // Refresh streak state
             streak.checkStreakContinuity()
-            tracker.captureStartOfDay()
 
             val reviewed = tracker.getReviewedToday()
             streak.reportReviews(reviewed)

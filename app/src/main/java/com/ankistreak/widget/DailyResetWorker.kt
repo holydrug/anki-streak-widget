@@ -25,9 +25,6 @@ class DailyResetWorker(
         // Check if yesterday was studied, reset streak if not
         streak.checkStreakContinuity()
 
-        // Capture today's initial due count
-        tracker.captureStartOfDay()
-
         // Reschedule reminders for today
         WorkScheduler.scheduleReminders(ctx)
 
