@@ -53,6 +53,7 @@ class StreakWidgetProvider : AppWidgetProvider() {
 
             streak.checkStreakContinuity()
 
+            val due = tracker.getTotalDueCards()
             val reviewed = tracker.getReviewedToday()
             streak.reportReviews(reviewed)
 
@@ -115,19 +116,10 @@ class StreakWidgetProvider : AppWidgetProvider() {
                 context.getString(R.string.progress_format, reviewed, goal)
             )
 
-            // -- Bottom message --
-            val message = when (state) {
-                WidgetState.DONE -> context.getString(R.string.done_see_tomorrow)
-                WidgetState.MILESTONE -> "\u2B50 \u2B50 \u2B50"
-                WidgetState.PENDING_CRITICAL -> context.getString(R.string.now_or_never)
-                WidgetState.PENDING_EVENING -> {
-                    val h = getHoursUntilMidnight()
-                    context.getString(R.string.hours_left_format, h)
-                }
-                WidgetState.LOST -> context.getString(R.string.tap_to_start)
-                else -> context.getString(R.string.tap_to_open)
-            }
-            views.setTextViewText(R.id.widget_message, message)
+            // -- Bottom message (with debug info) --
+            val now = java.time.LocalTime.now()
+            val debug = "due=$due rev=$reviewed ${now.hour}:${"%02d".format(now.minute)}"
+            views.setTextViewText(R.id.widget_message, debug)
 
             // -- Week dots --
             updateWeekDots(context, views, streak)
@@ -226,10 +218,13 @@ class StreakWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
 
         if (intent.action == ACTION_TAP) {
-            // 1. Schedule quick updates for when user returns from AnkiDroid
+            // 1. Immediate update right now
+            updateAllWidgets(context)
+
+            // 2. Schedule quick updates for when user returns from AnkiDroid
             scheduleQuickUpdates(context)
 
-            // 2. Open AnkiDroid
+            // 3. Open AnkiDroid
             val ankiIntent = context.packageManager
                 .getLaunchIntentForPackage(AnkiTracker.ANKI_PACKAGE)
                 ?: Intent(context, SettingsActivity::class.java)
