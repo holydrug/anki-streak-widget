@@ -1,18 +1,17 @@
 package com.ankistreak.widget
 
 import android.content.Context
+import android.os.Build
 import androidx.work.*
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 
-/**
- * Central place for scheduling all periodic and one-time workers.
- */
 object WorkScheduler {
 
     private const val WIDGET_UPDATE_WORK = "widget_update_periodic"
+    private const val CONTENT_TRIGGER_WORK = "anki_content_trigger"
     private const val DAILY_RESET_WORK = "daily_reset"
     private const val REMINDER_SOFT_WORK = "reminder_soft"
     private const val REMINDER_MEDIUM_WORK = "reminder_medium"
@@ -21,19 +20,19 @@ object WorkScheduler {
 
     fun scheduleAll(context: Context) {
         scheduleWidgetUpdates(context)
+        scheduleContentTrigger(context)
         scheduleDailyReset(context)
         scheduleReminders(context)
     }
 
     /**
-     * Update widget every 30 minutes to reflect AnkiDroid changes and time-of-day color.
+     * Periodic fallback: update every 15 min (WorkManager minimum).
+     * Handles time-of-day color changes and cases where content trigger misses.
      */
     private fun scheduleWidgetUpdates(context: Context) {
         val request = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(
-            30, TimeUnit.MINUTES
-        )
-            .setConstraints(Constraints.Builder().build())
-            .build()
+            15, TimeUnit.MINUTES
+        ).build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WIDGET_UPDATE_WORK,
@@ -43,10 +42,32 @@ object WorkScheduler {
     }
 
     /**
-     * Reset streak state at midnight.
+     * Reactive trigger: fires when AnkiDroid's content provider data changes.
+     * This gives near-instant widget updates after each card review.
+     * Worker re-enqueues itself to keep the trigger active.
      */
+    fun scheduleContentTrigger(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val constraints = Constraints.Builder()
+                .addContentUriTrigger(AnkiTracker.DECK_URI, true)
+                .setTriggerContentUpdateDelay(3, TimeUnit.SECONDS)
+                .setTriggerContentMaxDelay(10, TimeUnit.SECONDS)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<ContentTriggerWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                CONTENT_TRIGGER_WORK,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+    }
+
     private fun scheduleDailyReset(context: Context) {
-        val delay = getDelayUntil(0, 5) // 00:05 — slight offset to ensure date rolled over
+        val delay = getDelayUntil(0, 5)
         val request = OneTimeWorkRequestBuilder<DailyResetWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .build()
@@ -58,9 +79,6 @@ object WorkScheduler {
         )
     }
 
-    /**
-     * Schedule reminder notifications at configured times.
-     */
     fun scheduleReminders(context: Context) {
         val streak = StreakManager(context)
         if (!streak.notificationsEnabled) {
@@ -73,7 +91,6 @@ object WorkScheduler {
         val criticalH = streak.criticalHour
         val criticalM = streak.criticalMinute
 
-        // Calculate intermediate times
         val midH = (reminderH + criticalH) / 2
         val strongH = (midH + criticalH) / 2
 
@@ -87,7 +104,7 @@ object WorkScheduler {
         context: Context, tag: String, hour: Int, minute: Int, urgency: String
     ) {
         val delay = getDelayUntil(hour, minute)
-        if (delay <= 0) return // Time already passed today, skip
+        if (delay <= 0) return
 
         val data = Data.Builder().putString("urgency", urgency).build()
         val request = OneTimeWorkRequestBuilder<ReminderWorker>()
@@ -110,9 +127,6 @@ object WorkScheduler {
         wm.cancelUniqueWork(REMINDER_CRITICAL_WORK)
     }
 
-    /**
-     * Returns milliseconds from now until the next occurrence of [hour]:[minute].
-     */
     private fun getDelayUntil(hour: Int, minute: Int): Long {
         val now = LocalDateTime.now()
         var target = now.toLocalDate().atTime(LocalTime.of(hour, minute))
