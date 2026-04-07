@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +25,32 @@ jobs:
       - name: Build Debug APK
         run: gradle assembleDebug
 
-      - name: Upload APK
+      - name: Get version
+        id: version
+        run: |
+          VERSION="v1.0.$(date +%Y%m%d)-$(echo $GITHUB_SHA | cut -c1-7)"
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/AnkiStreak-${{ steps.version.outputs.tag }}.apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: AnkiStreak ${{ steps.version.outputs.tag }}
+          body: |
+            ## AnkiStreak Widget
+
+            Скачай APK и установи на телефон:
+            1. Скачай `AnkiStreak-*.apk` ниже
+            2. Открой на телефоне → Установить
+            3. В AnkiDroid: Настройки → Расширенные → Разрешить доступ API
+            4. Зажми домашний экран → Виджеты → AnkiStreak
+          files: |
+            app/build/outputs/apk/debug/AnkiStreak-${{ steps.version.outputs.tag }}.apk
+
+      - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: AnkiStreak-debug
