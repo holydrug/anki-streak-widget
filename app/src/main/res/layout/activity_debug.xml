@@ -48,6 +48,16 @@
             android:textStyle="bold"
             android:backgroundTint="@color/grey_primary"
             android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_reset"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="СБРОСИТЬ ВСЁ"
+            android:textStyle="bold"
+            android:backgroundTint="@color/red_primary"
+            android:textColor="@color/white"
             android:layout_marginBottom="16dp" />
 
         <TextView

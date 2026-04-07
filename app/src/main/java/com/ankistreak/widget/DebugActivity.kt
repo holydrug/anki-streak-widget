@@ -40,6 +40,13 @@ class DebugActivity : AppCompatActivity() {
             clip.setPrimaryClip(ClipData.newPlainText("AnkiStreak Debug", debugText.text))
             Toast.makeText(this, "Скопировано!", Toast.LENGTH_SHORT).show()
         }
+        findViewById<Button>(R.id.btn_reset).setOnClickListener {
+            getSharedPreferences("anki_tracker", Context.MODE_PRIVATE).edit().clear().apply()
+            getSharedPreferences("streak_data", Context.MODE_PRIVATE).edit().clear().apply()
+            StreakWidgetProvider.updateAllWidgets(this)
+            Toast.makeText(this, "Всё сброшено!", Toast.LENGTH_SHORT).show()
+            refresh()
+        }
 
         refresh()
     }
