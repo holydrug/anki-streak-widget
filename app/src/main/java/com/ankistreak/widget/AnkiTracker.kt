@@ -11,7 +11,7 @@ class AnkiTracker(private val context: Context) {
         const val ANKI_PACKAGE = "com.ichi2.anki"
         private const val AUTHORITY = "com.ichi2.anki.flashcards"
         val DECK_URI: Uri = Uri.parse("content://$AUTHORITY/decks")
-        private const val DECK_COUNTS = "deck_counts"
+        private const val DECK_COUNTS = "deck_count"
 
         private const val PREFS_NAME = "anki_tracker"
         private const val KEY_LAST_DUE = "last_due_check"
