@@ -93,6 +93,10 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "Сохранено!", Toast.LENGTH_SHORT).show()
             finish()
         }
+
+        findViewById<Button>(R.id.debug_button).setOnClickListener {
+            startActivity(Intent(this, DebugActivity::class.java))
+        }
     }
 
     private fun requestAnkiPermission() {

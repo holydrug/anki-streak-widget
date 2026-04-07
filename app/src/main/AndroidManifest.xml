@@ -38,6 +38,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Debug Activity -->
+        <activity
+            android:name=".DebugActivity"
+            android:exported="false"
+            android:label="Debug"
+            android:theme="@style/Theme.AnkiStreak" />
+
         <!-- Widget Provider -->
         <receiver
             android:name=".StreakWidgetProvider"

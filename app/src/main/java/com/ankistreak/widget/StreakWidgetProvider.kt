@@ -116,10 +116,10 @@ class StreakWidgetProvider : AppWidgetProvider() {
                 context.getString(R.string.progress_format, reviewed, goal)
             )
 
-            // -- Bottom message (with debug info) --
+            // -- Bottom message --
             val now = java.time.LocalTime.now()
-            val debug = "due=$due rev=$reviewed ${now.hour}:${"%02d".format(now.minute)}"
-            views.setTextViewText(R.id.widget_message, debug)
+            val message = "d=$due r=$reviewed ${now.hour}:${"%02d".format(now.minute)}"
+            views.setTextViewText(R.id.widget_message, message)
 
             // -- Week dots --
             updateWeekDots(context, views, streak)
