@@ -14,8 +14,6 @@ import androidx.core.content.ContextCompat
 class SettingsActivity : AppCompatActivity() {
 
     companion object {
-        private const val ANKI_PERMISSION = "com.ichi2.anki.permission.READ_WRITE_DATABASE"
-        private const val RC_ANKI_PERMISSION = 101
         private const val RC_NOTIFICATIONS = 100
     }
 
@@ -26,7 +24,6 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        // Get widget ID if launched from widget config
         appWidgetId = intent.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
@@ -35,7 +32,6 @@ class SettingsActivity : AppCompatActivity() {
         val streak = StreakManager(this)
         val tracker = AnkiTracker(this)
 
-        // Populate current values
         val cardGoalInput = findViewById<EditText>(R.id.card_goal_input)
         val notifSwitch = findViewById<Switch>(R.id.notifications_switch)
         val reminderPicker = findViewById<TimePicker>(R.id.reminder_time_picker)
@@ -56,15 +52,13 @@ class SettingsActivity : AppCompatActivity() {
         criticalPicker.hour = streak.criticalHour
         criticalPicker.minute = streak.criticalMinute
 
-        // Display streak
         currentStreakDisplay.text = streak.currentStreak.toString()
         bestStreakDisplay.text = "Лучший: ${streak.bestStreak}"
 
-        // Check AnkiDroid status & request permission if needed
+        // Show full diagnostic for AnkiDroid access
         updateAnkiStatus(tracker)
-        requestAnkiPermissionIfNeeded()
 
-        // Request notification permission on Android 13+
+        // Notification permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED
@@ -78,7 +72,6 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         saveButton.setOnClickListener {
-            // Save settings
             val goal = cardGoalInput.text.toString().toIntOrNull() ?: 10
             streak.cardGoal = goal.coerceIn(1, 200)
             streak.notificationsEnabled = notifSwitch.isChecked
@@ -87,13 +80,9 @@ class SettingsActivity : AppCompatActivity() {
             streak.criticalHour = criticalPicker.hour
             streak.criticalMinute = criticalPicker.minute
 
-            // Reschedule workers with new settings
             WorkScheduler.scheduleAll(this)
-
-            // Update widget
             StreakWidgetProvider.updateAllWidgets(this)
 
-            // If launched as widget config, confirm
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 val result = Intent().putExtra(
                     AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId
@@ -106,60 +95,25 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestAnkiPermissionIfNeeded() {
-        if (ContextCompat.checkSelfPermission(this, ANKI_PERMISSION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(ANKI_PERMISSION),
-                RC_ANKI_PERMISSION
-            )
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == RC_ANKI_PERMISSION) {
-            val tracker = AnkiTracker(this)
-            updateAnkiStatus(tracker)
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Доступ к AnkiDroid получен!", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
-        // Re-check status when returning (user might have changed AnkiDroid settings)
         updateAnkiStatus(AnkiTracker(this))
     }
 
     private fun updateAnkiStatus(tracker: AnkiTracker) {
-        val hasPermission = ContextCompat.checkSelfPermission(this, ANKI_PERMISSION) ==
-                PackageManager.PERMISSION_GRANTED
+        if (!tracker.isAnkiDroidInstalled()) {
+            ankiStatus.text = getString(R.string.settings_anki_not_installed)
+            ankiStatus.setTextColor(getColor(R.color.red_primary))
+            return
+        }
 
-        when {
-            !tracker.isAnkiDroidInstalled() -> {
-                ankiStatus.text = getString(R.string.settings_anki_not_installed)
-                ankiStatus.setTextColor(getColor(R.color.red_primary))
-            }
-            !hasPermission -> {
-                ankiStatus.text = getString(R.string.settings_permission_denied)
-                ankiStatus.setTextColor(getColor(R.color.orange_primary))
-            }
-            !tracker.hasContentProviderAccess() -> {
-                ankiStatus.text = "Разрешение есть, но API недоступен. Перезапустите AnkiDroid"
-                ankiStatus.setTextColor(getColor(R.color.orange_primary))
-            }
-            else -> {
-                ankiStatus.text = getString(R.string.settings_permission_granted)
-                ankiStatus.setTextColor(getColor(R.color.green_primary))
-            }
+        val diag = tracker.diagnosAccess()
+        if (diag.startsWith("ok")) {
+            ankiStatus.text = "Доступ к AnkiDroid: $diag"
+            ankiStatus.setTextColor(getColor(R.color.green_primary))
+        } else {
+            ankiStatus.text = "AnkiDroid API: $diag"
+            ankiStatus.setTextColor(getColor(R.color.orange_primary))
         }
     }
 }

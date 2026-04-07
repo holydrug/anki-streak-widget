@@ -5,22 +5,13 @@ import android.net.Uri
 import org.json.JSONArray
 import java.time.LocalDate
 
-/**
- * Tracks AnkiDroid reviews via Content Provider.
- *
- * AnkiDroid exposes deck info including due card counts through
- * content://com.ichi2.anki.flashcards/decks
- *
- * We capture total due count at start of day and compare with current
- * to calculate how many cards were reviewed today.
- */
 class AnkiTracker(private val context: Context) {
 
     companion object {
         const val ANKI_PACKAGE = "com.ichi2.anki"
         private const val AUTHORITY = "com.ichi2.anki.flashcards"
         val DECK_URI: Uri = Uri.parse("content://$AUTHORITY/decks")
-        private const val DECK_COUNTS = "deck_counts" // JSON: [new, learn, review]
+        private const val DECK_COUNTS = "deck_counts"
 
         private const val PREFS_NAME = "anki_tracker"
         private const val KEY_INITIAL_DUE = "initial_due"
@@ -40,25 +31,36 @@ class AnkiTracker(private val context: Context) {
         }
     }
 
-    fun hasContentProviderAccess(): Boolean {
+    /**
+     * Try to access AnkiDroid Content Provider and return diagnostic info.
+     * Returns: "ok" on success, or error description on failure.
+     */
+    fun diagnosAccess(): String {
         return try {
             val cursor = context.contentResolver.query(DECK_URI, null, null, null, null)
-            cursor?.close()
-            cursor != null
+            if (cursor != null) {
+                val count = cursor.count
+                val cols = cursor.columnNames?.joinToString(", ") ?: "none"
+                cursor.close()
+                "ok (decks: $count, columns: $cols)"
+            } else {
+                "cursor=null (API выключен в AnkiDroid или нет колод)"
+            }
         } catch (e: SecurityException) {
-            false
+            "SecurityException: ${e.message}"
         } catch (e: Exception) {
-            false
+            "${e.javaClass.simpleName}: ${e.message}"
         }
     }
 
-    /**
-     * Get total due cards across all decks (new + learn + review).
-     */
+    fun hasContentProviderAccess(): Boolean {
+        return diagnosAccess().startsWith("ok")
+    }
+
     fun getTotalDueCards(): Int {
         try {
             val cursor = context.contentResolver.query(
-                DECK_URI, arrayOf(DECK_COUNTS), null, null, null
+                DECK_URI, null, null, null, null
             ) ?: return -1
 
             var totalDue = 0
@@ -70,7 +72,6 @@ class AnkiTracker(private val context: Context) {
                     val countsJson = it.getString(countsIdx) ?: continue
                     try {
                         val arr = JSONArray(countsJson)
-                        // [new, learn, review]
                         val newCount = arr.optInt(0, 0)
                         val learnCount = arr.optInt(1, 0)
                         val reviewCount = arr.optInt(2, 0)
@@ -86,9 +87,6 @@ class AnkiTracker(private val context: Context) {
         }
     }
 
-    /**
-     * Call this at start of day (or first check of the day) to capture baseline.
-     */
     fun captureStartOfDay() {
         val today = LocalDate.now().toString()
         val storedDate = prefs.getString(KEY_INITIAL_DATE, "")
@@ -106,12 +104,6 @@ class AnkiTracker(private val context: Context) {
         }
     }
 
-    /**
-     * Get estimated number of cards reviewed today.
-     * Calculated as: initial_due - current_due (clamped >= 0).
-     * We also track a running maximum to handle edge cases where
-     * current_due increases (new cards becoming due).
-     */
     fun getReviewedToday(): Int {
         val today = LocalDate.now().toString()
         val storedDate = prefs.getString(KEY_INITIAL_DATE, "")
@@ -128,7 +120,6 @@ class AnkiTracker(private val context: Context) {
 
         val calculated = maxOf(0, initialDue - currentDue)
 
-        // Keep running max — due count can fluctuate as cards graduate from learning
         val previousMax = if (prefs.getString(KEY_REVIEW_DATE, "") == today) {
             prefs.getInt(KEY_REVIEWED_TODAY, 0)
         } else 0
